@@ -4,11 +4,16 @@ package playcamp
 type CampaignStatus string
 
 const (
+	// CampaignStatusPendingExposure indicates the campaign is awaiting exposure.
 	CampaignStatusPendingExposure CampaignStatus = "PENDING_EXPOSURE"
-	CampaignStatusExposed         CampaignStatus = "EXPOSED"
-	CampaignStatusInProgress      CampaignStatus = "IN_PROGRESS"
-	CampaignStatusCompleted       CampaignStatus = "COMPLETED"
-	CampaignStatusCancelled       CampaignStatus = "CANCELLED"
+	// CampaignStatusExposed indicates the campaign is exposed and visible.
+	CampaignStatusExposed CampaignStatus = "EXPOSED"
+	// CampaignStatusInProgress indicates the campaign is actively running.
+	CampaignStatusInProgress CampaignStatus = "IN_PROGRESS"
+	// CampaignStatusCompleted indicates the campaign has finished.
+	CampaignStatusCompleted CampaignStatus = "COMPLETED"
+	// CampaignStatusCancelled indicates the campaign was cancelled.
+	CampaignStatusCancelled CampaignStatus = "CANCELLED"
 )
 
 // LocalizedString is a map of locale codes to translated strings.

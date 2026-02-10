@@ -6,22 +6,32 @@ import "encoding/json"
 type WebhookEventType string
 
 const (
-	WebhookEventCouponRedeemed  WebhookEventType = "coupon.redeemed"
-	WebhookEventPaymentCreated  WebhookEventType = "payment.created"
+	// WebhookEventCouponRedeemed is fired when a coupon is redeemed.
+	WebhookEventCouponRedeemed WebhookEventType = "coupon.redeemed"
+	// WebhookEventPaymentCreated is fired when a payment is created.
+	WebhookEventPaymentCreated WebhookEventType = "payment.created"
+	// WebhookEventPaymentRefunded is fired when a payment is refunded.
 	WebhookEventPaymentRefunded WebhookEventType = "payment.refunded"
-	WebhookEventSponsorCreated  WebhookEventType = "sponsor.created"
-	WebhookEventSponsorChanged  WebhookEventType = "sponsor.changed"
+	// WebhookEventSponsorCreated is fired when a sponsor relationship is created.
+	WebhookEventSponsorCreated WebhookEventType = "sponsor.created"
+	// WebhookEventSponsorChanged is fired when a sponsor relationship is changed.
+	WebhookEventSponsorChanged WebhookEventType = "sponsor.changed"
 )
 
 // WebhookStatus represents the delivery status of a webhook.
 type WebhookStatus string
 
 const (
-	WebhookStatusPending    WebhookStatus = "PENDING"
+	// WebhookStatusPending indicates the webhook delivery is queued.
+	WebhookStatusPending WebhookStatus = "PENDING"
+	// WebhookStatusProcessing indicates the webhook is being delivered.
 	WebhookStatusProcessing WebhookStatus = "PROCESSING"
-	WebhookStatusSuccess    WebhookStatus = "SUCCESS"
-	WebhookStatusFailed     WebhookStatus = "FAILED"
-	WebhookStatusRetrying   WebhookStatus = "RETRYING"
+	// WebhookStatusSuccess indicates the webhook was delivered successfully.
+	WebhookStatusSuccess WebhookStatus = "SUCCESS"
+	// WebhookStatusFailed indicates the webhook delivery failed.
+	WebhookStatusFailed WebhookStatus = "FAILED"
+	// WebhookStatusRetrying indicates the webhook delivery is being retried.
+	WebhookStatusRetrying WebhookStatus = "RETRYING"
 )
 
 // Webhook represents a webhook endpoint.

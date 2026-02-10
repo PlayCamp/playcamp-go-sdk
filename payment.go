@@ -4,30 +4,43 @@ package playcamp
 type PaymentPlatform string
 
 const (
-	PaymentPlatformIOS     PaymentPlatform = "iOS"
+	// PaymentPlatformIOS represents the iOS App Store platform.
+	PaymentPlatformIOS PaymentPlatform = "iOS"
+	// PaymentPlatformAndroid represents the Android Google Play platform.
 	PaymentPlatformAndroid PaymentPlatform = "Android"
-	PaymentPlatformWeb     PaymentPlatform = "Web"
-	PaymentPlatformRoblox  PaymentPlatform = "Roblox"
-	PaymentPlatformOther   PaymentPlatform = "Other"
+	// PaymentPlatformWeb represents a web-based payment platform.
+	PaymentPlatformWeb PaymentPlatform = "Web"
+	// PaymentPlatformRoblox represents the Roblox platform.
+	PaymentPlatformRoblox PaymentPlatform = "Roblox"
+	// PaymentPlatformOther represents other payment platforms.
+	PaymentPlatformOther PaymentPlatform = "Other"
 )
 
 // DistributionType represents the distribution type.
 type DistributionType string
 
 const (
-	DistributionMobileStore     DistributionType = "MOBILE_STORE"
+	// DistributionMobileStore represents distribution via a mobile app store.
+	DistributionMobileStore DistributionType = "MOBILE_STORE"
+	// DistributionMobileSelfStore represents self-distributed mobile apps.
 	DistributionMobileSelfStore DistributionType = "MOBILE_SELF_STORE"
-	DistributionPCStore         DistributionType = "PC_STORE"
-	DistributionPCSelfStore     DistributionType = "PC_SELF_STORE"
+	// DistributionPCStore represents distribution via a PC store.
+	DistributionPCStore DistributionType = "PC_STORE"
+	// DistributionPCSelfStore represents self-distributed PC apps.
+	DistributionPCSelfStore DistributionType = "PC_SELF_STORE"
 )
 
 // PaymentStatus represents the status of a payment.
 type PaymentStatus string
 
 const (
+	// PaymentStatusCompleted indicates the payment was successfully completed.
 	PaymentStatusCompleted PaymentStatus = "COMPLETED"
-	PaymentStatusRefunded  PaymentStatus = "REFUNDED"
-	PaymentStatusPending   PaymentStatus = "PENDING"
+	// PaymentStatusRefunded indicates the payment was refunded.
+	PaymentStatusRefunded PaymentStatus = "REFUNDED"
+	// PaymentStatusPending indicates the payment is pending processing.
+	PaymentStatusPending PaymentStatus = "PENDING"
+	// PaymentStatusCancelled indicates the payment was cancelled.
 	PaymentStatusCancelled PaymentStatus = "CANCELLED"
 )
 

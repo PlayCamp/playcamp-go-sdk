@@ -11,10 +11,12 @@ type NetworkError struct {
 	Err     error
 }
 
+// Error returns the error message.
 func (e *NetworkError) Error() string {
 	return fmt.Sprintf("playcamp: %s", e.Message)
 }
 
+// Unwrap returns the underlying error for use with errors.Is and errors.As.
 func (e *NetworkError) Unwrap() error { return e.Err }
 
 // APIError represents an HTTP error response from the API.
@@ -24,6 +26,7 @@ type APIError struct {
 	Message    string
 }
 
+// Error returns a formatted error message including the status code and message.
 func (e *APIError) Error() string {
 	if e.Code != "" {
 		return fmt.Sprintf("playcamp: API error %d (%s): %s", e.StatusCode, e.Code, e.Message)
@@ -55,6 +58,7 @@ type InputValidationError struct {
 	Message string
 }
 
+// Error returns a formatted validation error message.
 func (e *InputValidationError) Error() string {
 	return fmt.Sprintf("playcamp: validation error on field %q: %s", e.Field, e.Message)
 }

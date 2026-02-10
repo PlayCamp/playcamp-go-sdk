@@ -4,13 +4,20 @@ package playcamp
 type CouponErrorCode string
 
 const (
-	CouponErrorNotFound       CouponErrorCode = "COUPON_NOT_FOUND"
-	CouponErrorInactive       CouponErrorCode = "COUPON_INACTIVE"
-	CouponErrorNotYetValid    CouponErrorCode = "COUPON_NOT_YET_VALID"
-	CouponErrorExpired        CouponErrorCode = "COUPON_EXPIRED"
-	CouponErrorUserCodeLimit  CouponErrorCode = "USER_CODE_LIMIT"
-	CouponErrorUserPkgLimit   CouponErrorCode = "USER_PACKAGE_LIMIT"
-	CouponErrorTotalUsageLmt  CouponErrorCode = "TOTAL_USAGE_LIMIT"
+	// CouponErrorNotFound indicates the coupon code does not exist.
+	CouponErrorNotFound CouponErrorCode = "COUPON_NOT_FOUND"
+	// CouponErrorInactive indicates the coupon is no longer active.
+	CouponErrorInactive CouponErrorCode = "COUPON_INACTIVE"
+	// CouponErrorNotYetValid indicates the coupon is not yet within its validity period.
+	CouponErrorNotYetValid CouponErrorCode = "COUPON_NOT_YET_VALID"
+	// CouponErrorExpired indicates the coupon has expired.
+	CouponErrorExpired CouponErrorCode = "COUPON_EXPIRED"
+	// CouponErrorUserCodeLimit indicates the user has reached the per-code usage limit.
+	CouponErrorUserCodeLimit CouponErrorCode = "USER_CODE_LIMIT"
+	// CouponErrorUserPkgLimit indicates the user has reached the per-package usage limit.
+	CouponErrorUserPkgLimit CouponErrorCode = "USER_PACKAGE_LIMIT"
+	// CouponErrorTotalUsageLmt indicates the coupon has reached its total usage limit.
+	CouponErrorTotalUsageLmt CouponErrorCode = "TOTAL_USAGE_LIMIT"
 )
 
 // CouponValidation represents the result of coupon validation.

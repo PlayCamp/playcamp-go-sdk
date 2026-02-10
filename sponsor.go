@@ -4,9 +4,12 @@ package playcamp
 type SponsorAction string
 
 const (
+	// SponsorActionCreated indicates a new sponsor relationship was created.
 	SponsorActionCreated SponsorAction = "CREATED"
+	// SponsorActionChanged indicates the sponsor's creator was changed.
 	SponsorActionChanged SponsorAction = "CHANGED"
-	SponsorActionEnded   SponsorAction = "ENDED"
+	// SponsorActionEnded indicates the sponsor relationship was ended.
+	SponsorActionEnded SponsorAction = "ENDED"
 )
 
 // Sponsor represents a sponsor relationship.

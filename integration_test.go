@@ -281,13 +281,13 @@ func TestIntegration_Client_InvalidKey(t *testing.T) {
 	t.Logf("Expected error: %v", err)
 }
 
-// --- Full Flow: Client API (데이터 기반 연쇄 테스트) ---
+// --- Full Flow: Client API (data-driven chained test) ---
 
 func TestIntegration_Client_FullFlow(t *testing.T) {
 	client := integrationClient(t)
 	ctx := context.Background()
 
-	// 1. Campaign 목록 조회
+	// 1. List campaigns
 	campaigns, err := client.Campaigns.List(ctx, &PaginationOptions{Limit: Int(10)})
 	if err != nil {
 		t.Fatalf("Campaigns.List: %v", err)
@@ -298,7 +298,7 @@ func TestIntegration_Client_FullFlow(t *testing.T) {
 	campaign := campaigns.Data[0]
 	t.Logf("[1] Campaign: id=%s status=%s", campaign.CampaignID, campaign.Status)
 
-	// 2. Campaign 상세 조회
+	// 2. Get campaign detail
 	detail, err := client.Campaigns.Get(ctx, campaign.CampaignID)
 	if err != nil {
 		t.Fatalf("Campaigns.Get: %v", err)
@@ -308,7 +308,7 @@ func TestIntegration_Client_FullFlow(t *testing.T) {
 	}
 	t.Logf("[2] Campaign detail: id=%s status=%s", detail.CampaignID, detail.Status)
 
-	// 3. Campaign의 크리에이터 조회
+	// 3. Get campaign creators
 	creators, err := client.Campaigns.GetCreators(ctx, campaign.CampaignID)
 	if err != nil {
 		t.Fatalf("Campaigns.GetCreators: %v", err)
@@ -321,7 +321,7 @@ func TestIntegration_Client_FullFlow(t *testing.T) {
 		t.Logf("     - %s (key=%s, status=%s)", c.CreatorName, c.CreatorKey, c.Status)
 	}
 
-	// 4. 크리에이터 키로 단건 조회
+	// 4. Get creator by key
 	creatorKey := creators[0].CreatorKey
 	creator, err := client.Creators.Get(ctx, creatorKey)
 	if err != nil {
@@ -332,7 +332,7 @@ func TestIntegration_Client_FullFlow(t *testing.T) {
 	}
 	t.Logf("[4] Creator detail: %s (key=%s)", creator.CreatorName, creator.CreatorKey)
 
-	// 5. 크리에이터 검색 (keyword max 10 chars)
+	// 5. Search creators (keyword max 10 chars)
 	keyword := "test"
 	searchResults, err := client.Creators.Search(ctx, SearchCreatorsParams{
 		Keyword: keyword,
@@ -346,7 +346,7 @@ func TestIntegration_Client_FullFlow(t *testing.T) {
 	}
 	t.Logf("[5] Search %q: %d results", keyword, len(searchResults))
 
-	// 6. Campaign 패키지 조회
+	// 6. Get campaign packages
 	packages, err := client.Campaigns.GetPackages(ctx, campaign.CampaignID)
 	if err != nil {
 		t.Fatalf("Campaigns.GetPackages: %v", err)
@@ -356,7 +356,7 @@ func TestIntegration_Client_FullFlow(t *testing.T) {
 		t.Logf("     - id=%d itemId=%s itemName=%v qty=%d", p.PackageID, p.ItemID, p.ItemName, p.ItemQuantity)
 	}
 
-	// 7. 스폰서 조회 (데이터 없어도 에러 없이 빈 배열 반환 확인)
+	// 7. Get sponsors (verify empty array returned when no data)
 	sponsors, err := client.Sponsors.Get(ctx, GetSponsorParams{
 		UserID:     "integration_test_user",
 		CampaignID: &campaign.CampaignID,
@@ -367,13 +367,13 @@ func TestIntegration_Client_FullFlow(t *testing.T) {
 	t.Logf("[7] Sponsors for test user: %d", len(sponsors))
 }
 
-// --- Full Flow: Server API (읽기/쓰기 전체 플로우) ---
+// --- Full Flow: Server API (read/write full flow) ---
 
 func TestIntegration_Server_FullFlow(t *testing.T) {
 	server := integrationServer(t)
 	ctx := context.Background()
 
-	// 1. Server Campaign 목록
+	// 1. List server campaigns
 	campaigns, err := server.Campaigns.List(ctx, &PaginationOptions{Limit: Int(10)})
 	if err != nil {
 		t.Fatalf("Campaigns.List: %v", err)
@@ -384,14 +384,14 @@ func TestIntegration_Server_FullFlow(t *testing.T) {
 	campaign := campaigns.Data[0]
 	t.Logf("[1] Server Campaign: id=%s", campaign.CampaignID)
 
-	// 2. Server Campaign 상세
+	// 2. Get server campaign detail
 	detail, err := server.Campaigns.Get(ctx, campaign.CampaignID)
 	if err != nil {
 		t.Fatalf("Campaigns.Get: %v", err)
 	}
 	t.Logf("[2] Server Campaign detail: id=%s status=%s", detail.CampaignID, detail.Status)
 
-	// 3. Server 크리에이터 조회
+	// 3. Get server campaign creators
 	creators, err := server.Campaigns.GetCreators(ctx, campaign.CampaignID)
 	if err != nil {
 		t.Fatalf("Campaigns.GetCreators: %v", err)
@@ -402,14 +402,14 @@ func TestIntegration_Server_FullFlow(t *testing.T) {
 	creatorKey := creators[0].CreatorKey
 	t.Logf("[3] Server Creators: %d (first=%s)", len(creators), creatorKey)
 
-	// 4. Server 크리에이터 단건 조회
+	// 4. Get server creator by key
 	creator, err := server.Creators.Get(ctx, creatorKey)
 	if err != nil {
 		t.Fatalf("Creators.Get: %v", err)
 	}
 	t.Logf("[4] Server Creator: %s (key=%s)", creator.CreatorName, creator.CreatorKey)
 
-	// 5. Server 크리에이터 검색
+	// 5. Search server creators
 	searchResults, err := server.Creators.Search(ctx, SearchCreatorsParams{
 		Keyword: "test",
 		Limit:   Int(5),
@@ -419,7 +419,7 @@ func TestIntegration_Server_FullFlow(t *testing.T) {
 	}
 	t.Logf("[5] Server Creator search: %d results", len(searchResults))
 
-	// 6. Server 크리에이터 쿠폰 목록
+	// 6. Get server creator coupons
 	coupons, err := server.Creators.GetCoupons(ctx, creatorKey)
 	if err != nil {
 		t.Fatalf("Creators.GetCoupons(%s): %v", creatorKey, err)
@@ -429,14 +429,14 @@ func TestIntegration_Server_FullFlow(t *testing.T) {
 		t.Logf("     - code=%s status=%s", c.CouponCode, c.Status)
 	}
 
-	// 7. Webhook 목록
+	// 7. List webhooks
 	webhooks, err := server.Webhooks.List(ctx)
 	if err != nil {
 		t.Fatalf("Webhooks.List: %v", err)
 	}
 	t.Logf("[7] Webhooks: %d", len(webhooks))
 
-	// 8. Webhook 로그 조회 (있으면)
+	// 8. Get webhook logs (if any webhooks exist)
 	if len(webhooks) > 0 {
 		logs, err := server.Webhooks.GetLogs(ctx, webhooks[0].ID)
 		if err != nil {
@@ -446,13 +446,13 @@ func TestIntegration_Server_FullFlow(t *testing.T) {
 	}
 }
 
-// --- Server: Sponsor CRUD 플로우 ---
+// --- Server: Sponsor CRUD Flow ---
 
 func TestIntegration_Server_Sponsor_CRUD(t *testing.T) {
 	server := integrationServer(t)
 	ctx := context.Background()
 
-	// 캠페인과 크리에이터 확인
+	// Verify campaigns and creators exist
 	campaigns, err := server.Campaigns.List(ctx, nil)
 	if err != nil {
 		t.Fatalf("Campaigns.List: %v", err)
@@ -551,13 +551,13 @@ func TestIntegration_Server_Sponsor_CRUD(t *testing.T) {
 	t.Logf("[6] Verified: no active sponsor for campaign %s", campaignID)
 }
 
-// --- Server: Coupon Validate & Redeem 플로우 ---
+// --- Server: Coupon Validate & Redeem Flow ---
 
 func TestIntegration_Server_Coupon_Flow(t *testing.T) {
 	server := integrationServer(t)
 	ctx := context.Background()
 
-	// 크리에이터 쿠폰 코드 조회
+	// Get creator coupon codes
 	campaigns, err := server.Campaigns.List(ctx, nil)
 	if err != nil {
 		t.Fatalf("Campaigns.List: %v", err)
@@ -605,7 +605,7 @@ func TestIntegration_Server_Coupon_Flow(t *testing.T) {
 		validation.Valid, validation.CouponCode, validation.ItemName,
 		errCode, errMsg)
 
-	// 2. Redeem (valid일 때만)
+	// 2. Redeem (only if valid)
 	if validation.Valid {
 		result, err := server.Coupons.Redeem(ctx, RedeemCouponParams{
 			CouponCode: couponCode,
@@ -633,7 +633,7 @@ func TestIntegration_Server_Coupon_Flow(t *testing.T) {
 	}
 }
 
-// --- Server: Payment 플로우 ---
+// --- Server: Payment Flow ---
 
 func TestIntegration_Server_Payment_Flow(t *testing.T) {
 	server := integrationServer(t)
@@ -688,4 +688,3 @@ func TestIntegration_Server_Payment_Flow(t *testing.T) {
 	}
 	t.Logf("[4] Refunded: txn=%s status=%s", refunded.TransactionID, refunded.Status)
 }
-
