@@ -83,6 +83,66 @@ func TestCampaignService_List(t *testing.T) {
 	}
 }
 
+func TestCampaignService_ListAll(t *testing.T) {
+	page := 0
+	client, ts := setupTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		page++
+		switch page {
+		case 1:
+			writeJSON(w, map[string]any{
+				"data":       []map[string]any{{"campaignId": "c1", "projectId": "p1", "status": "EXPOSED"}},
+				"pagination": map[string]any{"page": 1, "limit": 1, "total": 2, "totalPages": 2},
+			})
+		case 2:
+			writeJSON(w, map[string]any{
+				"data":       []map[string]any{{"campaignId": "c2", "projectId": "p1", "status": "COMPLETED"}},
+				"pagination": map[string]any{"page": 2, "limit": 1, "total": 2, "totalPages": 2},
+			})
+		}
+	})
+	defer ts.Close()
+
+	iter := client.Campaigns.ListAll(&PaginationOptions{Limit: Int(1)})
+	ctx := context.Background()
+	var ids []string
+	for iter.Next(ctx) {
+		ids = append(ids, iter.Item().CampaignID)
+		iter.Advance()
+	}
+	if err := iter.Err(); err != nil {
+		t.Fatalf("iterator error: %v", err)
+	}
+	if len(ids) != 2 {
+		t.Fatalf("len(ids) = %d, want 2", len(ids))
+	}
+	if ids[0] != "c1" || ids[1] != "c2" {
+		t.Errorf("ids = %v, want [c1, c2]", ids)
+	}
+}
+
+func TestCampaignService_ListAll_NilOptions(t *testing.T) {
+	client, ts := setupTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, map[string]any{
+			"data":       []map[string]any{{"campaignId": "c1", "projectId": "p1", "status": "EXPOSED"}},
+			"pagination": map[string]any{"page": 1, "limit": 20, "total": 1, "totalPages": 1},
+		})
+	})
+	defer ts.Close()
+
+	iter := client.Campaigns.ListAll(nil)
+	ctx := context.Background()
+	if !iter.Next(ctx) {
+		t.Fatal("expected at least one item")
+	}
+	if iter.Item().CampaignID != "c1" {
+		t.Errorf("CampaignID = %q, want c1", iter.Item().CampaignID)
+	}
+	iter.Advance()
+	if iter.Next(ctx) {
+		t.Error("expected no more items")
+	}
+}
+
 func TestCampaignService_Get(t *testing.T) {
 	client, ts := setupTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/v1/client/campaigns/camp-123" {
@@ -403,6 +463,50 @@ func TestCouponServerService_GetUserHistory(t *testing.T) {
 	}
 }
 
+func TestCouponServerService_ListAllUserHistory(t *testing.T) {
+	page := 0
+	server, ts := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/server/coupons/user/user1" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		page++
+		switch page {
+		case 1:
+			writeJSON(w, map[string]any{
+				"data": []map[string]any{
+					{"id": 1, "userId": "user1", "couponCode": "CODE1", "packageId": 1, "usedAt": "2024-01-01T00:00:00Z", "rewardDelivered": true},
+				},
+				"pagination": map[string]any{"page": 1, "limit": 1, "total": 2, "totalPages": 2},
+			})
+		case 2:
+			writeJSON(w, map[string]any{
+				"data": []map[string]any{
+					{"id": 2, "userId": "user1", "couponCode": "CODE2", "packageId": 2, "usedAt": "2024-01-02T00:00:00Z", "rewardDelivered": true},
+				},
+				"pagination": map[string]any{"page": 2, "limit": 1, "total": 2, "totalPages": 2},
+			})
+		}
+	})
+	defer ts.Close()
+
+	iter := server.Coupons.ListAllUserHistory("user1", &PaginationOptions{Limit: Int(1)})
+	ctx := context.Background()
+	var codes []string
+	for iter.Next(ctx) {
+		codes = append(codes, iter.Item().CouponCode)
+		iter.Advance()
+	}
+	if err := iter.Err(); err != nil {
+		t.Fatalf("iterator error: %v", err)
+	}
+	if len(codes) != 2 {
+		t.Fatalf("len(codes) = %d, want 2", len(codes))
+	}
+	if codes[0] != "CODE1" || codes[1] != "CODE2" {
+		t.Errorf("codes = %v, want [CODE1, CODE2]", codes)
+	}
+}
+
 // --- Server: Sponsor Tests ---
 
 func TestSponsorServerService_Create(t *testing.T) {
@@ -508,6 +612,56 @@ func TestSponsorServerService_GetHistory(t *testing.T) {
 	}
 	if result.Data[0].Action != SponsorActionCreated {
 		t.Errorf("Action = %q, want CREATED", result.Data[0].Action)
+	}
+}
+
+func TestSponsorServerService_ListAllHistory(t *testing.T) {
+	page := 0
+	server, ts := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/server/sponsors/user/user1/history" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		if r.URL.Query().Get("campaignId") != "c1" {
+			t.Errorf("campaignId = %s, want c1", r.URL.Query().Get("campaignId"))
+		}
+		page++
+		switch page {
+		case 1:
+			writeJSON(w, map[string]any{
+				"data": []map[string]any{
+					{"id": 1, "userId": "user1", "campaignId": "c1", "creatorKey": "ABCDE", "action": "CREATED", "createdAt": "2024-01-01T00:00:00Z"},
+				},
+				"pagination": map[string]any{"page": 1, "limit": 1, "total": 2, "totalPages": 2},
+			})
+		case 2:
+			writeJSON(w, map[string]any{
+				"data": []map[string]any{
+					{"id": 2, "userId": "user1", "campaignId": "c1", "creatorKey": "FGHIJ", "action": "CHANGED", "createdAt": "2024-02-01T00:00:00Z"},
+				},
+				"pagination": map[string]any{"page": 2, "limit": 1, "total": 2, "totalPages": 2},
+			})
+		}
+	})
+	defer ts.Close()
+
+	iter := server.Sponsors.ListAllHistory("user1", &GetSponsorHistoryOptions{
+		CampaignID: String("c1"),
+		Limit:      Int(1),
+	})
+	ctx := context.Background()
+	var actions []SponsorAction
+	for iter.Next(ctx) {
+		actions = append(actions, iter.Item().Action)
+		iter.Advance()
+	}
+	if err := iter.Err(); err != nil {
+		t.Fatalf("iterator error: %v", err)
+	}
+	if len(actions) != 2 {
+		t.Fatalf("len(actions) = %d, want 2", len(actions))
+	}
+	if actions[0] != SponsorActionCreated || actions[1] != SponsorActionChanged {
+		t.Errorf("actions = %v, want [CREATED, CHANGED]", actions)
 	}
 }
 
@@ -642,6 +796,50 @@ func TestPaymentService_ListByUser(t *testing.T) {
 	}
 	if len(result.Data) != 1 {
 		t.Errorf("len(Data) = %d, want 1", len(result.Data))
+	}
+}
+
+func TestPaymentService_ListAllByUser(t *testing.T) {
+	page := 0
+	server, ts := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/server/payments/user/user1" {
+			t.Errorf("path = %s", r.URL.Path)
+		}
+		page++
+		switch page {
+		case 1:
+			writeJSON(w, map[string]any{
+				"data": []map[string]any{
+					{"id": 1, "transactionId": "txn_1", "userId": "user1", "productId": "p1", "amount": 9.99, "currency": "USD", "platform": "iOS", "status": "COMPLETED", "purchasedAt": "2024-01-15T10:00:00Z", "createdAt": "2024-01-15T10:00:00Z"},
+				},
+				"pagination": map[string]any{"page": 1, "limit": 1, "total": 2, "totalPages": 2},
+			})
+		case 2:
+			writeJSON(w, map[string]any{
+				"data": []map[string]any{
+					{"id": 2, "transactionId": "txn_2", "userId": "user1", "productId": "p2", "amount": 19.99, "currency": "USD", "platform": "iOS", "status": "COMPLETED", "purchasedAt": "2024-02-15T10:00:00Z", "createdAt": "2024-02-15T10:00:00Z"},
+				},
+				"pagination": map[string]any{"page": 2, "limit": 1, "total": 2, "totalPages": 2},
+			})
+		}
+	})
+	defer ts.Close()
+
+	iter := server.Payments.ListAllByUser("user1", &PaginationOptions{Limit: Int(1)})
+	ctx := context.Background()
+	var txnIDs []string
+	for iter.Next(ctx) {
+		txnIDs = append(txnIDs, iter.Item().TransactionID)
+		iter.Advance()
+	}
+	if err := iter.Err(); err != nil {
+		t.Fatalf("iterator error: %v", err)
+	}
+	if len(txnIDs) != 2 {
+		t.Fatalf("len(txnIDs) = %d, want 2", len(txnIDs))
+	}
+	if txnIDs[0] != "txn_1" || txnIDs[1] != "txn_2" {
+		t.Errorf("txnIDs = %v, want [txn_1, txn_2]", txnIDs)
 	}
 }
 

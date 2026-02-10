@@ -92,3 +92,20 @@ func (s *SponsorServerService) GetHistory(ctx context.Context, userID string, op
 	}
 	return getPaginated[SponsorHistory](ctx, s.client, s.basePath+"/user/"+url.PathEscape(userID)+"/history", query)
 }
+
+// ListAllHistory returns an iterator that yields all sponsor history for a user across all pages.
+func (s *SponsorServerService) ListAllHistory(userID string, opts *GetSponsorHistoryOptions) *PageIterator[SponsorHistory] {
+	var limit *int
+	var campaignID *string
+	if opts != nil {
+		limit = opts.Limit
+		campaignID = opts.CampaignID
+	}
+	return NewPageIterator(func(ctx context.Context, page int) (*PageResult[SponsorHistory], error) {
+		return s.GetHistory(ctx, userID, &GetSponsorHistoryOptions{
+			Page:       Int(page),
+			Limit:      limit,
+			CampaignID: campaignID,
+		})
+	})
+}

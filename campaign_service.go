@@ -27,6 +27,18 @@ func (s *campaignBase) List(ctx context.Context, opts *PaginationOptions) (*Page
 	return getPaginated[Campaign](ctx, s.client, s.basePath, paginationQuery(opts))
 }
 
+// ListAll returns an iterator that yields all campaigns across all pages.
+// The iterator automatically fetches subsequent pages as needed.
+func (s *campaignBase) ListAll(opts *PaginationOptions) *PageIterator[Campaign] {
+	var limit *int
+	if opts != nil {
+		limit = opts.Limit
+	}
+	return NewPageIterator(func(ctx context.Context, page int) (*PageResult[Campaign], error) {
+		return s.List(ctx, &PaginationOptions{Page: Int(page), Limit: limit})
+	})
+}
+
 // Get returns a single campaign by ID.
 func (s *campaignBase) Get(ctx context.Context, id string) (*Campaign, error) {
 	if err := requireNonEmpty("id", id); err != nil {

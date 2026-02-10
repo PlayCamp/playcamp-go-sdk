@@ -67,6 +67,17 @@ func (s *PaymentService) ListByUser(ctx context.Context, userID string, opts *Pa
 	return getPaginated[Payment](ctx, s.client, s.basePath+"/user/"+url.PathEscape(userID), paginationQuery(opts))
 }
 
+// ListAllByUser returns an iterator that yields all payments for a user across all pages.
+func (s *PaymentService) ListAllByUser(userID string, opts *PaginationOptions) *PageIterator[Payment] {
+	var limit *int
+	if opts != nil {
+		limit = opts.Limit
+	}
+	return NewPageIterator(func(ctx context.Context, page int) (*PageResult[Payment], error) {
+		return s.ListByUser(ctx, userID, &PaginationOptions{Page: Int(page), Limit: limit})
+	})
+}
+
 // Refund refunds a payment.
 func (s *PaymentService) Refund(ctx context.Context, transactionID string, opts *RefundPaymentOptions) (*Payment, error) {
 	if err := requireNonEmpty("transactionId", transactionID); err != nil {

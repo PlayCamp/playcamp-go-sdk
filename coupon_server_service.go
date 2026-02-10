@@ -54,3 +54,14 @@ func (s *CouponServerService) GetUserHistory(ctx context.Context, userID string,
 	}
 	return getPaginated[CouponUsage](ctx, s.client, s.basePath+"/user/"+url.PathEscape(userID), paginationQuery(opts))
 }
+
+// ListAllUserHistory returns an iterator that yields all coupon usage history for a user across all pages.
+func (s *CouponServerService) ListAllUserHistory(userID string, opts *PaginationOptions) *PageIterator[CouponUsage] {
+	var limit *int
+	if opts != nil {
+		limit = opts.Limit
+	}
+	return NewPageIterator(func(ctx context.Context, page int) (*PageResult[CouponUsage], error) {
+		return s.GetUserHistory(ctx, userID, &PaginationOptions{Page: Int(page), Limit: limit})
+	})
+}
