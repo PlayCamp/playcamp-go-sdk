@@ -269,4 +269,4 @@ playcamp.Float64(9.99)    // *float64
 
 ## License
 
-Copyright PlayCamp. All rights reserved.
+This project is licensed under the [MIT License](LICENSE).
