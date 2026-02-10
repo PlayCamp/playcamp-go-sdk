@@ -166,6 +166,7 @@ if err != nil {
 
 | Type | HTTP Status Code | Description |
 |------|-----------------|-------------|
+| `BadRequestError` | 400 | Bad request (includes field-level `Details`) |
 | `AuthError` | 401 | Authentication failure |
 | `ForbiddenError` | 403 | Insufficient permissions |
 | `NotFoundError` | 404 | Resource not found |

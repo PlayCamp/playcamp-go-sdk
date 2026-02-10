@@ -12,6 +12,7 @@ func TestNewAPIError(t *testing.T) {
 		body       string
 		wantType   string
 	}{
+		{"400 bad request", 400, `{"message":"Bad Request"}`, "*playcamp.BadRequestError"},
 		{"401 auth error", 401, `{"message":"Unauthorized"}`, "*playcamp.AuthError"},
 		{"403 forbidden", 403, `{"message":"Forbidden"}`, "*playcamp.ForbiddenError"},
 		{"404 not found", 404, `{"message":"Not found"}`, "*playcamp.NotFoundError"},
@@ -94,11 +95,38 @@ func TestErrorsAs(t *testing.T) {
 
 	t.Run("error field fallback", func(t *testing.T) {
 		err := newAPIError(400, []byte(`{"error":"Bad request"}`))
-		var apiErr *APIError
-		if errors.As(err, &apiErr) {
-			if apiErr.Message != "Bad request" {
-				t.Errorf("Message = %q, want %q", apiErr.Message, "Bad request")
-			}
+		var badReq *BadRequestError
+		if !errors.As(err, &badReq) {
+			t.Error("errors.As should match *BadRequestError")
+		}
+		if badReq.Message != "Bad request" {
+			t.Errorf("Message = %q, want %q", badReq.Message, "Bad request")
+		}
+	})
+
+	t.Run("BadRequestError with details", func(t *testing.T) {
+		body := `{"code":"VALIDATION_ERROR","error":"Validation Error","details":[{"message":"Invalid datetime","path":"purchasedAt","target":"body"}]}`
+		err := newAPIError(400, []byte(body))
+		var badReq *BadRequestError
+		if !errors.As(err, &badReq) {
+			t.Fatal("errors.As should match *BadRequestError")
+		}
+		if badReq.Code != "VALIDATION_ERROR" {
+			t.Errorf("Code = %q, want VALIDATION_ERROR", badReq.Code)
+		}
+		if len(badReq.Details) != 1 {
+			t.Fatalf("len(Details) = %d, want 1", len(badReq.Details))
+		}
+		if badReq.Details[0].Path != "purchasedAt" {
+			t.Errorf("Details[0].Path = %q, want purchasedAt", badReq.Details[0].Path)
+		}
+		if badReq.Details[0].Message != "Invalid datetime" {
+			t.Errorf("Details[0].Message = %q, want Invalid datetime", badReq.Details[0].Message)
+		}
+		// Error string should include details
+		want := `playcamp: API error 400 (VALIDATION_ERROR): Validation Error; purchasedAt: Invalid datetime`
+		if badReq.Error() != want {
+			t.Errorf("Error() = %q, want %q", badReq.Error(), want)
 		}
 	})
 }

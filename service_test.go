@@ -1854,6 +1854,39 @@ func TestCampaignService_GetPackages_EmptyID(t *testing.T) {
 
 // --- HTTP Error: ForbiddenError, ConflictError, ValidationError ---
 
+func TestHTTPError_400(t *testing.T) {
+	server, ts := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]any{
+			"code":  "VALIDATION_ERROR",
+			"error": "Validation Error",
+			"details": []map[string]any{
+				{"message": "Invalid datetime", "path": "purchasedAt", "target": "body"},
+			},
+		})
+	})
+	defer ts.Close()
+
+	_, err := server.Payments.Create(context.Background(), CreatePaymentParams{
+		UserID: "u1", TransactionID: "t1", ProductID: "p1",
+		Amount: 9.99, Currency: "USD", Platform: "iOS", PurchasedAt: "now",
+	})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	var badReq *BadRequestError
+	if !errors.As(err, &badReq) {
+		t.Errorf("expected BadRequestError, got %T: %v", err, err)
+	}
+	if len(badReq.Details) != 1 {
+		t.Fatalf("len(Details) = %d, want 1", len(badReq.Details))
+	}
+	if badReq.Details[0].Path != "purchasedAt" {
+		t.Errorf("Details[0].Path = %q, want purchasedAt", badReq.Details[0].Path)
+	}
+}
+
 func TestHTTPError_403(t *testing.T) {
 	client, ts := setupTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

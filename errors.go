@@ -24,14 +24,29 @@ type APIError struct {
 	StatusCode int
 	Code       string
 	Message    string
+	Details    []ValidationDetail
+}
+
+// ValidationDetail contains field-level validation error information.
+type ValidationDetail struct {
+	Message string `json:"message"`
+	Path    string `json:"path"`
+	Target  string `json:"target"`
 }
 
 // Error returns a formatted error message including the status code and message.
+// If field-level validation details are present, they are appended.
 func (e *APIError) Error() string {
+	var msg string
 	if e.Code != "" {
-		return fmt.Sprintf("playcamp: API error %d (%s): %s", e.StatusCode, e.Code, e.Message)
+		msg = fmt.Sprintf("playcamp: API error %d (%s): %s", e.StatusCode, e.Code, e.Message)
+	} else {
+		msg = fmt.Sprintf("playcamp: API error %d: %s", e.StatusCode, e.Message)
 	}
-	return fmt.Sprintf("playcamp: API error %d: %s", e.StatusCode, e.Message)
+	for _, d := range e.Details {
+		msg += fmt.Sprintf("; %s: %s", d.Path, d.Message)
+	}
+	return msg
 }
 
 // AuthError represents a 401 Unauthorized error.
@@ -45,6 +60,9 @@ type NotFoundError struct{ APIError }
 
 // ConflictError represents a 409 Conflict error.
 type ConflictError struct{ APIError }
+
+// BadRequestError represents a 400 Bad Request error.
+type BadRequestError struct{ APIError }
 
 // ValidationError represents a 422 Unprocessable Entity error.
 type ValidationError struct{ APIError }
@@ -68,13 +86,15 @@ func newAPIError(statusCode int, body []byte) error {
 	base := APIError{StatusCode: statusCode}
 
 	var parsed struct {
-		Message string `json:"message"`
-		Code    string `json:"code"`
-		Error   string `json:"error"`
+		Message string             `json:"message"`
+		Code    string             `json:"code"`
+		Error   string             `json:"error"`
+		Details []ValidationDetail `json:"details"`
 	}
 	if err := json.Unmarshal(body, &parsed); err == nil {
 		base.Message = parsed.Message
 		base.Code = parsed.Code
+		base.Details = parsed.Details
 		if base.Message == "" {
 			base.Message = parsed.Error
 		}
@@ -84,6 +104,8 @@ func newAPIError(statusCode int, body []byte) error {
 	}
 
 	switch statusCode {
+	case 400:
+		return &BadRequestError{APIError: base}
 	case 401:
 		return &AuthError{APIError: base}
 	case 403:
