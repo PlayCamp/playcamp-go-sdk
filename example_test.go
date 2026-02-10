@@ -20,7 +20,7 @@ func ExampleNewClient() {
 	ctx := context.Background()
 
 	// List campaigns
-	campaigns, err := client.Campaigns.List(ctx, &playcamp.ListCampaignsOptions{
+	campaigns, err := client.Campaigns.List(ctx, &playcamp.PaginationOptions{
 		Limit: playcamp.Int(10),
 	})
 	if err != nil {

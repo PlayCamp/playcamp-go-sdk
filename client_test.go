@@ -108,7 +108,7 @@ func TestEnvironmentURL(t *testing.T) {
 	}{
 		{EnvironmentSandbox, "https://sandbox-sdk-api.playcamp.io"},
 		{EnvironmentLive, "https://sdk-api.playcamp.io"},
-		{Environment("unknown"), "https://sdk-api.playcamp.io"},
+		{Environment("unknown"), ""},
 	}
 	for _, tt := range tests {
 		t.Run(string(tt.env), func(t *testing.T) {
@@ -117,6 +117,24 @@ func TestEnvironmentURL(t *testing.T) {
 				t.Errorf("EnvironmentURL(%q) = %q, want %q", tt.env, got, tt.want)
 			}
 		})
+	}
+
+	// NewClient with unknown environment should return error.
+	_, err := NewClient("key:secret", WithEnvironment(Environment("unknown")))
+	if err == nil {
+		t.Fatal("expected error for unknown environment")
+	}
+
+	// NewClient with HTTP base URL should return error.
+	_, err = NewClient("key:secret", WithBaseURL("http://example.com"))
+	if err == nil {
+		t.Fatal("expected error for HTTP base URL")
+	}
+
+	// NewClient with localhost HTTP should succeed (for testing).
+	_, err = NewClient("key:secret", WithBaseURL("http://localhost:8080"))
+	if err != nil {
+		t.Fatalf("unexpected error for localhost: %v", err)
 	}
 }
 

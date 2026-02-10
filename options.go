@@ -25,7 +25,6 @@ type DebugOptions struct {
 	Logger          func(format string, args ...any)
 	LogRequestBody  bool
 	LogResponseBody bool
-	LogHeaders      bool
 }
 
 func defaultConfig() *config {

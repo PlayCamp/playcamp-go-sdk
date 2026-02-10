@@ -20,11 +20,11 @@ func newSponsorServerService(client *httpclient.Client) *SponsorServerService {
 
 // Create creates a sponsor relationship.
 func (s *SponsorServerService) Create(ctx context.Context, params CreateSponsorParams) (*Sponsor, error) {
-	if params.UserID == "" {
-		return nil, &InputValidationError{Field: "userId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("userId", params.UserID); err != nil {
+		return nil, err
 	}
-	if params.CreatorKey == "" {
-		return nil, &InputValidationError{Field: "creatorKey", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("creatorKey", params.CreatorKey); err != nil {
+		return nil, err
 	}
 	var result Sponsor
 	if err := s.client.Post(ctx, s.basePath, params, &result); err != nil {
@@ -35,11 +35,11 @@ func (s *SponsorServerService) Create(ctx context.Context, params CreateSponsorP
 
 // GetByUser returns a user's sponsor status.
 func (s *SponsorServerService) GetByUser(ctx context.Context, userID string) ([]Sponsor, error) {
-	if userID == "" {
-		return nil, &InputValidationError{Field: "userId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("userId", userID); err != nil {
+		return nil, err
 	}
 	var result []Sponsor
-	if err := s.client.Get(ctx, s.basePath+"/user/"+userID, nil, &result); err != nil {
+	if err := s.client.Get(ctx, s.basePath+"/user/"+url.PathEscape(userID), nil, &result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -47,14 +47,14 @@ func (s *SponsorServerService) GetByUser(ctx context.Context, userID string) ([]
 
 // Update updates a sponsor (changes the creator).
 func (s *SponsorServerService) Update(ctx context.Context, userID string, params UpdateSponsorParams) (*Sponsor, error) {
-	if userID == "" {
-		return nil, &InputValidationError{Field: "userId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("userId", userID); err != nil {
+		return nil, err
 	}
-	if params.NewCreatorKey == "" {
-		return nil, &InputValidationError{Field: "newCreatorKey", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("newCreatorKey", params.NewCreatorKey); err != nil {
+		return nil, err
 	}
 	var result Sponsor
-	if err := s.client.Put(ctx, s.basePath+"/user/"+userID, params, &result); err != nil {
+	if err := s.client.Put(ctx, s.basePath+"/user/"+url.PathEscape(userID), params, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -62,23 +62,23 @@ func (s *SponsorServerService) Update(ctx context.Context, userID string, params
 
 // Delete ends a sponsor relationship.
 func (s *SponsorServerService) Delete(ctx context.Context, userID string, opts *DeleteSponsorOptions) error {
-	if userID == "" {
-		return &InputValidationError{Field: "userId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("userId", userID); err != nil {
+		return err
 	}
 	var query url.Values
 	if opts != nil && opts.CampaignID != nil {
 		query = url.Values{}
 		query.Set("campaignId", *opts.CampaignID)
 	}
-	return s.client.Delete(ctx, s.basePath+"/user/"+userID, query)
+	return s.client.Delete(ctx, s.basePath+"/user/"+url.PathEscape(userID), query)
 }
 
 // GetHistory returns the sponsor change history for a user.
 func (s *SponsorServerService) GetHistory(ctx context.Context, userID string, opts *GetSponsorHistoryOptions) (*PageResult[SponsorHistory], error) {
-	if userID == "" {
-		return nil, &InputValidationError{Field: "userId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("userId", userID); err != nil {
+		return nil, err
 	}
-	query := url.Values{}
+	query := paginationQuery(nil)
 	if opts != nil {
 		if opts.CampaignID != nil {
 			query.Set("campaignId", *opts.CampaignID)
@@ -90,5 +90,5 @@ func (s *SponsorServerService) GetHistory(ctx context.Context, userID string, op
 			query.Set("limit", fmt.Sprintf("%d", *opts.Limit))
 		}
 	}
-	return getPaginated[SponsorHistory](ctx, s.client, s.basePath+"/user/"+userID+"/history", query)
+	return getPaginated[SponsorHistory](ctx, s.client, s.basePath+"/user/"+url.PathEscape(userID)+"/history", query)
 }

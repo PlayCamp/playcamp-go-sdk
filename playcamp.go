@@ -11,6 +11,7 @@ const (
 )
 
 // EnvironmentURL returns the base URL for the given environment.
+// Returns an empty string for unknown environments.
 func EnvironmentURL(env Environment) string {
 	switch env {
 	case EnvironmentSandbox:
@@ -18,7 +19,7 @@ func EnvironmentURL(env Environment) string {
 	case EnvironmentLive:
 		return "https://sdk-api.playcamp.io"
 	default:
-		return "https://sdk-api.playcamp.io"
+		return ""
 	}
 }
 

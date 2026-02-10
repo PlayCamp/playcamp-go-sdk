@@ -2,7 +2,6 @@ package playcamp
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 
 	"github.com/playcamp/playcamp-go-sdk/internal/httpclient"
@@ -20,11 +19,11 @@ func newCouponServerService(client *httpclient.Client) *CouponServerService {
 
 // Validate validates a coupon code with user context.
 func (s *CouponServerService) Validate(ctx context.Context, params ValidateCouponServerParams) (*CouponValidation, error) {
-	if params.CouponCode == "" {
-		return nil, &InputValidationError{Field: "couponCode", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("couponCode", params.CouponCode); err != nil {
+		return nil, err
 	}
-	if params.UserID == "" {
-		return nil, &InputValidationError{Field: "userId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("userId", params.UserID); err != nil {
+		return nil, err
 	}
 	var result CouponValidation
 	if err := s.client.Post(ctx, s.basePath+"/validate", params, &result); err != nil {
@@ -35,11 +34,11 @@ func (s *CouponServerService) Validate(ctx context.Context, params ValidateCoupo
 
 // Redeem redeems a coupon code for a user.
 func (s *CouponServerService) Redeem(ctx context.Context, params RedeemCouponParams) (*RedeemResult, error) {
-	if params.CouponCode == "" {
-		return nil, &InputValidationError{Field: "couponCode", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("couponCode", params.CouponCode); err != nil {
+		return nil, err
 	}
-	if params.UserID == "" {
-		return nil, &InputValidationError{Field: "userId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("userId", params.UserID); err != nil {
+		return nil, err
 	}
 	var result RedeemResult
 	if err := s.client.Post(ctx, s.basePath+"/redeem", params, &result); err != nil {
@@ -50,17 +49,8 @@ func (s *CouponServerService) Redeem(ctx context.Context, params RedeemCouponPar
 
 // GetUserHistory returns a user's coupon usage history.
 func (s *CouponServerService) GetUserHistory(ctx context.Context, userID string, opts *PaginationOptions) (*PageResult[CouponUsage], error) {
-	if userID == "" {
-		return nil, &InputValidationError{Field: "userId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("userId", userID); err != nil {
+		return nil, err
 	}
-	query := url.Values{}
-	if opts != nil {
-		if opts.Page != nil {
-			query.Set("page", fmt.Sprintf("%d", *opts.Page))
-		}
-		if opts.Limit != nil {
-			query.Set("limit", fmt.Sprintf("%d", *opts.Limit))
-		}
-	}
-	return getPaginated[CouponUsage](ctx, s.client, s.basePath+"/user/"+userID, query)
+	return getPaginated[CouponUsage](ctx, s.client, s.basePath+"/user/"+url.PathEscape(userID), paginationQuery(opts))
 }

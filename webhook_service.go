@@ -28,11 +28,11 @@ func (s *WebhookService) List(ctx context.Context) ([]Webhook, error) {
 
 // Create registers a new webhook. The secret is only returned on creation.
 func (s *WebhookService) Create(ctx context.Context, params CreateWebhookParams) (*WebhookWithSecret, error) {
-	if params.EventType == "" {
-		return nil, &InputValidationError{Field: "eventType", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("eventType", string(params.EventType)); err != nil {
+		return nil, err
 	}
-	if params.URL == "" {
-		return nil, &InputValidationError{Field: "url", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("url", params.URL); err != nil {
+		return nil, err
 	}
 	var result WebhookWithSecret
 	if err := s.client.Post(ctx, s.basePath, params, &result); err != nil {

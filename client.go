@@ -28,7 +28,11 @@ func NewClient(apiKey string, opts ...Option) (*Client, error) {
 		opt(cfg)
 	}
 
-	hc := httpclient.New(buildHTTPConfig(apiKey, cfg))
+	httpCfg, err := buildHTTPConfig(apiKey, cfg)
+	if err != nil {
+		return nil, err
+	}
+	hc := httpclient.New(httpCfg)
 
 	return &Client{
 		Campaigns: newCampaignService(hc),
@@ -49,10 +53,15 @@ func validateAPIKey(apiKey string) error {
 	return nil
 }
 
-func buildHTTPConfig(apiKey string, cfg *config) httpclient.Config {
+func buildHTTPConfig(apiKey string, cfg *config) (httpclient.Config, error) {
 	baseURL := cfg.baseURL
 	if baseURL == "" {
 		baseURL = EnvironmentURL(cfg.environment)
+		if baseURL == "" {
+			return httpclient.Config{}, fmt.Errorf("playcamp: unsupported environment %q", cfg.environment)
+		}
+	} else if !strings.HasPrefix(baseURL, "https://") && !isLocalhostURL(baseURL) {
+		return httpclient.Config{}, fmt.Errorf("playcamp: base URL must use HTTPS scheme, got %q", baseURL)
 	}
 
 	var debug *httpclient.DebugOptions
@@ -62,7 +71,6 @@ func buildHTTPConfig(apiKey string, cfg *config) httpclient.Config {
 			Logger:          cfg.debug.Logger,
 			LogRequestBody:  cfg.debug.LogRequestBody,
 			LogResponseBody: cfg.debug.LogResponseBody,
-			LogHeaders:      cfg.debug.LogHeaders,
 		}
 	}
 
@@ -78,5 +86,10 @@ func buildHTTPConfig(apiKey string, cfg *config) httpclient.Config {
 			NewAPIError:     newAPIError,
 			NewNetworkError: newNetworkError,
 		},
-	}
+	}, nil
+}
+
+// isLocalhostURL returns true if the URL points to localhost (for testing).
+func isLocalhostURL(u string) bool {
+	return strings.HasPrefix(u, "http://localhost") || strings.HasPrefix(u, "http://127.0.0.1")
 }

@@ -1,11 +1,29 @@
 package playcamp
 
-import "context"
+import (
+	"context"
+	"fmt"
+	"net/url"
+)
 
 // PaginationOptions specifies pagination parameters for list endpoints.
 type PaginationOptions struct {
 	Page  *int `json:"page,omitempty"`
 	Limit *int `json:"limit,omitempty"`
+}
+
+// paginationQuery converts PaginationOptions to url.Values.
+func paginationQuery(opts *PaginationOptions) url.Values {
+	q := url.Values{}
+	if opts != nil {
+		if opts.Page != nil {
+			q.Set("page", fmt.Sprintf("%d", *opts.Page))
+		}
+		if opts.Limit != nil {
+			q.Set("limit", fmt.Sprintf("%d", *opts.Limit))
+		}
+	}
+	return q
 }
 
 // Pagination contains pagination metadata from a list response.

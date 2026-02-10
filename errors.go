@@ -97,11 +97,16 @@ func newAPIError(statusCode int, body []byte) error {
 	}
 }
 
-// newNetworkError creates a NetworkError.
-func newNetworkError(err error) error {
-	msg := "network request failed"
-	if err != nil {
-		msg = err.Error()
+// requireNonEmpty returns an InputValidationError if value is empty.
+func requireNonEmpty(field, value string) error {
+	if value == "" {
+		return &InputValidationError{Field: field, Message: "must be a non-empty string"}
 	}
-	return &NetworkError{Message: msg, Err: err}
+	return nil
+}
+
+// newNetworkError creates a NetworkError with a generic message.
+// The underlying error is available via Unwrap for debugging.
+func newNetworkError(err error) error {
+	return &NetworkError{Message: "network request failed", Err: err}
 }

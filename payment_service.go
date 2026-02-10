@@ -2,7 +2,6 @@ package playcamp
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 
 	"github.com/playcamp/playcamp-go-sdk/internal/httpclient"
@@ -20,26 +19,26 @@ func newPaymentService(client *httpclient.Client) *PaymentService {
 
 // Create registers a new payment.
 func (s *PaymentService) Create(ctx context.Context, params CreatePaymentParams) (*Payment, error) {
-	if params.UserID == "" {
-		return nil, &InputValidationError{Field: "userId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("userId", params.UserID); err != nil {
+		return nil, err
 	}
-	if params.TransactionID == "" {
-		return nil, &InputValidationError{Field: "transactionId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("transactionId", params.TransactionID); err != nil {
+		return nil, err
 	}
-	if params.ProductID == "" {
-		return nil, &InputValidationError{Field: "productId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("productId", params.ProductID); err != nil {
+		return nil, err
 	}
 	if params.Amount <= 0 {
 		return nil, &InputValidationError{Field: "amount", Message: "must be a positive number"}
 	}
-	if params.Currency == "" {
-		return nil, &InputValidationError{Field: "currency", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("currency", params.Currency); err != nil {
+		return nil, err
 	}
-	if params.Platform == "" {
-		return nil, &InputValidationError{Field: "platform", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("platform", string(params.Platform)); err != nil {
+		return nil, err
 	}
-	if params.PurchasedAt == "" {
-		return nil, &InputValidationError{Field: "purchasedAt", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("purchasedAt", params.PurchasedAt); err != nil {
+		return nil, err
 	}
 	var result Payment
 	if err := s.client.Post(ctx, s.basePath, params, &result); err != nil {
@@ -50,11 +49,11 @@ func (s *PaymentService) Create(ctx context.Context, params CreatePaymentParams)
 
 // Get returns a payment by transaction ID.
 func (s *PaymentService) Get(ctx context.Context, transactionID string) (*Payment, error) {
-	if transactionID == "" {
-		return nil, &InputValidationError{Field: "transactionId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("transactionId", transactionID); err != nil {
+		return nil, err
 	}
 	var result Payment
-	if err := s.client.Get(ctx, s.basePath+"/"+transactionID, nil, &result); err != nil {
+	if err := s.client.Get(ctx, s.basePath+"/"+url.PathEscape(transactionID), nil, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -62,32 +61,23 @@ func (s *PaymentService) Get(ctx context.Context, transactionID string) (*Paymen
 
 // ListByUser returns a user's payment history.
 func (s *PaymentService) ListByUser(ctx context.Context, userID string, opts *PaginationOptions) (*PageResult[Payment], error) {
-	if userID == "" {
-		return nil, &InputValidationError{Field: "userId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("userId", userID); err != nil {
+		return nil, err
 	}
-	query := url.Values{}
-	if opts != nil {
-		if opts.Page != nil {
-			query.Set("page", fmt.Sprintf("%d", *opts.Page))
-		}
-		if opts.Limit != nil {
-			query.Set("limit", fmt.Sprintf("%d", *opts.Limit))
-		}
-	}
-	return getPaginated[Payment](ctx, s.client, s.basePath+"/user/"+userID, query)
+	return getPaginated[Payment](ctx, s.client, s.basePath+"/user/"+url.PathEscape(userID), paginationQuery(opts))
 }
 
 // Refund refunds a payment.
 func (s *PaymentService) Refund(ctx context.Context, transactionID string, opts *RefundPaymentOptions) (*Payment, error) {
-	if transactionID == "" {
-		return nil, &InputValidationError{Field: "transactionId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("transactionId", transactionID); err != nil {
+		return nil, err
 	}
 	body := opts
 	if body == nil {
 		body = &RefundPaymentOptions{}
 	}
 	var result Payment
-	if err := s.client.Post(ctx, s.basePath+"/"+transactionID+"/refund", body, &result); err != nil {
+	if err := s.client.Post(ctx, s.basePath+"/"+url.PathEscape(transactionID)+"/refund", body, &result); err != nil {
 		return nil, err
 	}
 	return &result, nil

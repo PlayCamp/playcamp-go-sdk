@@ -12,13 +12,15 @@ import (
 	"time"
 )
 
+// maxResponseSize is the maximum response body size (10 MB).
+const maxResponseSize = 10 << 20
+
 // DebugOptions configures debug logging.
 type DebugOptions struct {
 	Enabled         bool
 	Logger          func(format string, args ...any)
 	LogRequestBody  bool
 	LogResponseBody bool
-	LogHeaders      bool
 }
 
 // ErrorFactory creates typed errors from HTTP status codes and response bodies.
@@ -191,7 +193,8 @@ func (c *Client) doRequestRaw(ctx context.Context, method, path string, query ur
 			responseTime := time.Since(startTime)
 			c.debugLogError(method, reqURL, err, responseTime)
 
-			if attempt < c.maxRetries {
+			// Only retry network errors for idempotent methods.
+			if attempt < c.maxRetries && isIdempotent(method) {
 				delay := calculateBackoff(attempt)
 				c.debugLogRetry(method, reqURL, attempt+1, c.maxRetries, delay)
 				select {
@@ -204,7 +207,7 @@ func (c *Client) doRequestRaw(ctx context.Context, method, path string, query ur
 			return nil, c.errorFactory.NewNetworkError(lastErr)
 		}
 
-		respBody, err := io.ReadAll(resp.Body)
+		respBody, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseSize))
 		resp.Body.Close()
 		if err != nil {
 			return nil, fmt.Errorf("playcamp: failed to read response body: %w", err)
@@ -219,7 +222,8 @@ func (c *Client) doRequestRaw(ctx context.Context, method, path string, query ur
 
 		c.debugLogResponse(method, reqURL, resp.StatusCode, responseTime, respBody)
 
-		if attempt < c.maxRetries && shouldRetry(resp.StatusCode) {
+		// Only retry on retryable status codes for idempotent methods.
+		if attempt < c.maxRetries && shouldRetry(method, resp.StatusCode) {
 			delay := calculateBackoff(attempt)
 			c.debugLogRetry(method, reqURL, attempt+1, c.maxRetries, delay)
 			select {
@@ -274,13 +278,37 @@ func (c *Client) debugLog(format string, args ...any) {
 	logger("[PlayCamp SDK] "+format, args...)
 }
 
+// sensitiveFields are JSON field names that should be redacted in debug logs.
+var sensitiveFields = map[string]bool{
+	"couponCode":   true,
+	"userId":       true,
+	"gameUserUuid": true,
+	"secret":       true,
+	"apiKey":       true,
+}
+
+// redactBody returns a JSON string with sensitive fields masked.
+func redactBody(data []byte) string {
+	var m map[string]any
+	if err := json.Unmarshal(data, &m); err != nil {
+		return "[non-JSON body]"
+	}
+	for k := range m {
+		if sensitiveFields[k] {
+			m[k] = "[REDACTED]"
+		}
+	}
+	b, _ := json.Marshal(m)
+	return string(b)
+}
+
 func (c *Client) debugLogRequest(method, u string, body []byte) {
 	if c.debug == nil || !c.debug.Enabled {
 		return
 	}
 	msg := fmt.Sprintf("→ %s %s", method, u)
 	if c.debug.LogRequestBody && len(body) > 0 {
-		msg += fmt.Sprintf("\n  body: %s", string(body))
+		msg += fmt.Sprintf("\n  body: %s", redactBody(body))
 	}
 	c.debugLog("%s", msg)
 }
@@ -291,7 +319,7 @@ func (c *Client) debugLogResponse(method, u string, status int, responseTime tim
 	}
 	msg := fmt.Sprintf("← %d %s %s (%dms)", status, method, u, responseTime.Milliseconds())
 	if c.debug.LogResponseBody && len(body) > 0 {
-		msg += fmt.Sprintf("\n  response: %s", string(body))
+		msg += fmt.Sprintf("\n  response: %s", redactBody(body))
 	}
 	c.debugLog("%s", msg)
 }

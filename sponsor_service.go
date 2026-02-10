@@ -19,8 +19,8 @@ func newSponsorService(client *httpclient.Client) *SponsorService {
 
 // Get returns the sponsor status for a user. The result is normalized to a slice.
 func (s *SponsorService) Get(ctx context.Context, params GetSponsorParams) ([]Sponsor, error) {
-	if params.UserID == "" {
-		return nil, &InputValidationError{Field: "userId", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("userId", params.UserID); err != nil {
+		return nil, err
 	}
 	query := url.Values{}
 	query.Set("userId", params.UserID)

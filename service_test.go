@@ -63,7 +63,7 @@ func TestCampaignService_List(t *testing.T) {
 	})
 	defer ts.Close()
 
-	result, err := client.Campaigns.List(context.Background(), &ListCampaignsOptions{
+	result, err := client.Campaigns.List(context.Background(), &PaginationOptions{
 		Limit: Int(5),
 	})
 	if err != nil {
@@ -1607,7 +1607,7 @@ func TestCampaignService_List_WithPageOption(t *testing.T) {
 	})
 	defer ts.Close()
 
-	_, err := client.Campaigns.List(context.Background(), &ListCampaignsOptions{
+	_, err := client.Campaigns.List(context.Background(), &PaginationOptions{
 		Page: Int(3),
 	})
 	if err != nil {
@@ -1754,7 +1754,6 @@ func TestOptions(t *testing.T) {
 			Enabled:         true,
 			LogRequestBody:  true,
 			LogResponseBody: true,
-			LogHeaders:      true,
 		}))
 		if err != nil {
 			t.Fatal(err)

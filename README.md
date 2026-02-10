@@ -38,7 +38,7 @@ func main() {
     ctx := context.Background()
 
     // 캠페인 목록 조회
-    campaigns, err := client.Campaigns.List(ctx, &playcamp.ListCampaignsOptions{
+    campaigns, err := client.Campaigns.List(ctx, &playcamp.PaginationOptions{
         Limit: playcamp.Int(10),
     })
     if err != nil {
@@ -236,7 +236,7 @@ sig := webhookutil.ConstructSignature(payload, secret, &webhookutil.SignatureOpt
 
 ```go
 // 첫 페이지 조회
-page, err := client.Campaigns.List(ctx, &playcamp.ListCampaignsOptions{
+page, err := client.Campaigns.List(ctx, &playcamp.PaginationOptions{
     Page:  playcamp.Int(1),
     Limit: playcamp.Int(20),
 })

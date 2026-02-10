@@ -25,12 +25,6 @@ type Campaign struct {
 	Status       CampaignStatus  `json:"status"`
 }
 
-// ListCampaignsOptions specifies options for listing campaigns.
-type ListCampaignsOptions struct {
-	Page  *int
-	Limit *int
-}
-
 // CouponPackage represents a coupon package within a campaign.
 type CouponPackage struct {
 	PackageID         int              `json:"packageId"`

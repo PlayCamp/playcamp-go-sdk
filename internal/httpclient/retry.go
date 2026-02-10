@@ -1,8 +1,10 @@
 package httpclient
 
 import (
+	"crypto/rand"
+	"encoding/binary"
 	"math"
-	"math/rand"
+	"net/http"
 	"time"
 )
 
@@ -12,8 +14,17 @@ const (
 	jitterFactor = 0.3
 )
 
-// shouldRetry returns true if the request should be retried for the given status code.
-func shouldRetry(statusCode int) bool {
+// isIdempotent returns true if the HTTP method is safe to retry.
+func isIdempotent(method string) bool {
+	return method == http.MethodGet || method == http.MethodHead
+}
+
+// shouldRetry returns true if the request should be retried for the given method and status code.
+// Only idempotent methods (GET, HEAD) are retried to avoid duplicate side effects.
+func shouldRetry(method string, statusCode int) bool {
+	if !isIdempotent(method) {
+		return false
+	}
 	return statusCode == 429 || statusCode >= 500
 }
 
@@ -26,8 +37,15 @@ func calculateBackoff(attempt int) time.Duration {
 	}
 
 	// Add jitter: 0 to jitterFactor of the delay.
-	jitter := delay * jitterFactor * rand.Float64()
+	jitter := delay * jitterFactor * cryptoRandFloat64()
 	delay += jitter
 
 	return time.Duration(delay)
+}
+
+// cryptoRandFloat64 returns a cryptographically random float64 in [0, 1).
+func cryptoRandFloat64() float64 {
+	var b [8]byte
+	_, _ = rand.Read(b[:])
+	return float64(binary.LittleEndian.Uint64(b[:])>>1) / float64(1<<63)
 }

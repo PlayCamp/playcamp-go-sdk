@@ -27,7 +27,11 @@ func NewServer(apiKey string, opts ...Option) (*Server, error) {
 		opt(cfg)
 	}
 
-	hc := httpclient.New(buildHTTPConfig(apiKey, cfg))
+	httpCfg, err := buildHTTPConfig(apiKey, cfg)
+	if err != nil {
+		return nil, err
+	}
+	hc := httpclient.New(httpCfg)
 
 	return &Server{
 		Campaigns: newCampaignServerService(hc),

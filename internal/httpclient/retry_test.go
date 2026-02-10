@@ -6,26 +6,36 @@ import (
 )
 
 func TestShouldRetry(t *testing.T) {
+	// GET requests should be retried on 429 and 5xx.
 	tests := []struct {
+		method string
 		status int
 		want   bool
 	}{
-		{200, false},
-		{201, false},
-		{400, false},
-		{401, false},
-		{403, false},
-		{404, false},
-		{422, false},
-		{429, true},
-		{500, true},
-		{502, true},
-		{503, true},
+		{"GET", 200, false},
+		{"GET", 201, false},
+		{"GET", 400, false},
+		{"GET", 401, false},
+		{"GET", 403, false},
+		{"GET", 404, false},
+		{"GET", 422, false},
+		{"GET", 429, true},
+		{"GET", 500, true},
+		{"GET", 502, true},
+		{"GET", 503, true},
+		{"HEAD", 500, true},
+		{"HEAD", 429, true},
+		// Non-idempotent methods should never be retried.
+		{"POST", 429, false},
+		{"POST", 500, false},
+		{"POST", 502, false},
+		{"PUT", 500, false},
+		{"DELETE", 500, false},
 	}
 	for _, tt := range tests {
-		got := shouldRetry(tt.status)
+		got := shouldRetry(tt.method, tt.status)
 		if got != tt.want {
-			t.Errorf("shouldRetry(%d) = %v, want %v", tt.status, got, tt.want)
+			t.Errorf("shouldRetry(%s, %d) = %v, want %v", tt.method, tt.status, got, tt.want)
 		}
 	}
 }

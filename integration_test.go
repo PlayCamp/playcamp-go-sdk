@@ -68,7 +68,7 @@ func TestIntegration_Client_Campaigns_List(t *testing.T) {
 	client := integrationClient(t)
 	ctx := context.Background()
 
-	result, err := client.Campaigns.List(ctx, &ListCampaignsOptions{Limit: Int(5)})
+	result, err := client.Campaigns.List(ctx, &PaginationOptions{Limit: Int(5)})
 	if err != nil {
 		t.Fatalf("Campaigns.List: %v", err)
 	}
@@ -83,7 +83,7 @@ func TestIntegration_Client_Campaigns_Get(t *testing.T) {
 	ctx := context.Background()
 
 	// First list to get an ID
-	result, err := client.Campaigns.List(ctx, &ListCampaignsOptions{Limit: Int(1)})
+	result, err := client.Campaigns.List(ctx, &PaginationOptions{Limit: Int(1)})
 	if err != nil {
 		t.Fatalf("Campaigns.List: %v", err)
 	}
@@ -103,7 +103,7 @@ func TestIntegration_Client_Campaigns_GetCreators(t *testing.T) {
 	client := integrationClient(t)
 	ctx := context.Background()
 
-	result, err := client.Campaigns.List(ctx, &ListCampaignsOptions{Limit: Int(1)})
+	result, err := client.Campaigns.List(ctx, &PaginationOptions{Limit: Int(1)})
 	if err != nil {
 		t.Fatalf("Campaigns.List: %v", err)
 	}
@@ -126,7 +126,7 @@ func TestIntegration_Client_Campaigns_GetPackages(t *testing.T) {
 	client := integrationClient(t)
 	ctx := context.Background()
 
-	result, err := client.Campaigns.List(ctx, &ListCampaignsOptions{Limit: Int(1)})
+	result, err := client.Campaigns.List(ctx, &PaginationOptions{Limit: Int(1)})
 	if err != nil {
 		t.Fatalf("Campaigns.List: %v", err)
 	}
@@ -207,7 +207,7 @@ func TestIntegration_Server_Campaigns_List(t *testing.T) {
 	server := integrationServer(t)
 	ctx := context.Background()
 
-	result, err := server.Campaigns.List(ctx, &ListCampaignsOptions{Limit: Int(5)})
+	result, err := server.Campaigns.List(ctx, &PaginationOptions{Limit: Int(5)})
 	if err != nil {
 		t.Fatalf("Campaigns.List: %v", err)
 	}
@@ -240,7 +240,6 @@ func TestIntegration_Client_Debug(t *testing.T) {
 		Enabled:         true,
 		LogRequestBody:  true,
 		LogResponseBody: true,
-		LogHeaders:      true,
 	}))
 
 	client, err := NewClient(key, opts...)
@@ -248,7 +247,7 @@ func TestIntegration_Client_Debug(t *testing.T) {
 		t.Fatalf("NewClient: %v", err)
 	}
 
-	_, err = client.Campaigns.List(context.Background(), &ListCampaignsOptions{Limit: Int(1)})
+	_, err = client.Campaigns.List(context.Background(), &PaginationOptions{Limit: Int(1)})
 	if err != nil {
 		t.Fatalf("Campaigns.List: %v", err)
 	}
@@ -289,7 +288,7 @@ func TestIntegration_Client_FullFlow(t *testing.T) {
 	ctx := context.Background()
 
 	// 1. Campaign 목록 조회
-	campaigns, err := client.Campaigns.List(ctx, &ListCampaignsOptions{Limit: Int(10)})
+	campaigns, err := client.Campaigns.List(ctx, &PaginationOptions{Limit: Int(10)})
 	if err != nil {
 		t.Fatalf("Campaigns.List: %v", err)
 	}
@@ -375,7 +374,7 @@ func TestIntegration_Server_FullFlow(t *testing.T) {
 	ctx := context.Background()
 
 	// 1. Server Campaign 목록
-	campaigns, err := server.Campaigns.List(ctx, &ListCampaignsOptions{Limit: Int(10)})
+	campaigns, err := server.Campaigns.List(ctx, &PaginationOptions{Limit: Int(10)})
 	if err != nil {
 		t.Fatalf("Campaigns.List: %v", err)
 	}
@@ -690,4 +689,3 @@ func TestIntegration_Server_Payment_Flow(t *testing.T) {
 	t.Logf("[4] Refunded: txn=%s status=%s", refunded.TransactionID, refunded.Status)
 }
 
-func distributionTypePtr(v DistributionType) *DistributionType { return &v }

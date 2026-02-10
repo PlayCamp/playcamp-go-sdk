@@ -59,28 +59,7 @@ func Verify(opts VerifyOptions) VerifyResult {
 
 func verifySimple(payload []byte, signature, secret string) VerifyResult {
 	expected := computeHMAC(payload, secret)
-
-	providedBytes, err := hex.DecodeString(signature)
-	if err != nil {
-		return VerifyResult{Error: "Invalid signature format"}
-	}
-	expectedBytes, err := hex.DecodeString(expected)
-	if err != nil {
-		return VerifyResult{Error: "Invalid signature format"}
-	}
-
-	if len(providedBytes) != len(expectedBytes) {
-		return VerifyResult{Error: "Invalid signature"}
-	}
-	if subtle.ConstantTimeCompare(providedBytes, expectedBytes) != 1 {
-		return VerifyResult{Error: "Invalid signature"}
-	}
-
-	var parsed playcamp.WebhookPayload
-	if err := json.Unmarshal(payload, &parsed); err != nil {
-		return VerifyResult{Error: "Invalid JSON payload"}
-	}
-	return VerifyResult{Valid: true, Payload: &parsed}
+	return compareAndParse(payload, signature, expected)
 }
 
 func verifyTimestamped(payload []byte, signature, secret string, tolerance int) VerifyResult {
@@ -104,18 +83,25 @@ func verifyTimestamped(payload []byte, signature, secret string, tolerance int) 
 	}
 
 	now := time.Now().Unix()
-	if abs(now-ts) > int64(tolerance) {
+	// Only accept timestamps in the recent past (within tolerance), plus a small
+	// allowance for clock skew (5 seconds into the future).
+	const clockSkewAllowance int64 = 5
+	if now-ts > int64(tolerance) || ts-now > clockSkewAllowance {
 		return VerifyResult{Error: "Webhook timestamp outside tolerance window"}
 	}
 
 	signedPayload := fmt.Sprintf("%d.%s", ts, string(payload))
 	expected := computeHMAC([]byte(signedPayload), secret)
+	return compareAndParse(payload, sigHex, expected)
+}
 
-	providedBytes, err := hex.DecodeString(sigHex)
+// compareAndParse performs timing-safe HMAC comparison and parses the payload on success.
+func compareAndParse(payload []byte, providedHex, expectedHex string) VerifyResult {
+	providedBytes, err := hex.DecodeString(providedHex)
 	if err != nil {
 		return VerifyResult{Error: "Invalid signature format"}
 	}
-	expectedBytes, err := hex.DecodeString(expected)
+	expectedBytes, err := hex.DecodeString(expectedHex)
 	if err != nil {
 		return VerifyResult{Error: "Invalid signature format"}
 	}
@@ -138,11 +124,4 @@ func computeHMAC(payload []byte, secret string) string {
 	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write(payload)
 	return hex.EncodeToString(mac.Sum(nil))
-}
-
-func abs(x int64) int64 {
-	if x < 0 {
-		return -x
-	}
-	return x
 }

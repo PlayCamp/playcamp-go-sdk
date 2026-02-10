@@ -18,8 +18,8 @@ func newCouponService(client *httpclient.Client) *CouponService {
 
 // Validate validates a coupon code.
 func (s *CouponService) Validate(ctx context.Context, params ValidateCouponParams) (*CouponValidation, error) {
-	if params.CouponCode == "" {
-		return nil, &InputValidationError{Field: "couponCode", Message: "must be a non-empty string"}
+	if err := requireNonEmpty("couponCode", params.CouponCode); err != nil {
+		return nil, err
 	}
 	var result CouponValidation
 	if err := s.client.Post(ctx, s.basePath+"/validate", params, &result); err != nil {
