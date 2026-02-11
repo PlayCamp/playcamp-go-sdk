@@ -37,8 +37,8 @@ func (s *PaymentService) Create(ctx context.Context, params CreatePaymentParams)
 	if err := requireNonEmpty("platform", string(params.Platform)); err != nil {
 		return nil, err
 	}
-	if err := requireNonEmpty("purchasedAt", params.PurchasedAt); err != nil {
-		return nil, err
+	if params.PurchasedAt.IsZero() {
+		return nil, &InputValidationError{Field: "purchasedAt", Message: "must be a non-zero time.Time"}
 	}
 	var result Payment
 	if err := s.client.Post(ctx, s.basePath, params, &result); err != nil {

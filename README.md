@@ -83,7 +83,7 @@ payment, err := server.Payments.Create(ctx, playcamp.CreatePaymentParams{
     Amount:        9.99,
     Currency:      "USD",
     Platform:      playcamp.PaymentPlatformIOS,
-    PurchasedAt:   "2024-01-15T10:30:00Z",
+    PurchasedAt:   time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC),
 })
 
 // Create a sponsor

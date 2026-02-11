@@ -1,5 +1,7 @@
 package playcamp
 
+import "time"
+
 // PaymentPlatform represents the payment platform.
 type PaymentPlatform string
 
@@ -76,7 +78,7 @@ type CreatePaymentParams struct {
 	Currency         string            `json:"currency"`
 	Platform         PaymentPlatform   `json:"platform"`
 	DistributionType *DistributionType `json:"distributionType,omitempty"`
-	PurchasedAt      string            `json:"purchasedAt"`
+	PurchasedAt      time.Time         `json:"purchasedAt"`
 	Receipt          *string           `json:"receipt,omitempty"`
 	CampaignID       *string           `json:"campaignId,omitempty"`
 	CreatorKey       *string           `json:"creatorKey,omitempty"`

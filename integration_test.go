@@ -651,7 +651,7 @@ func TestIntegration_Server_Payment_Flow(t *testing.T) {
 		Amount:        9.99,
 		Currency:      "USD",
 		Platform:      PaymentPlatformWeb,
-		PurchasedAt:   time.Now().UTC().Format("2006-01-02T15:04:05Z"),
+		PurchasedAt:   time.Now().UTC(),
 	})
 	if err != nil {
 		t.Fatalf("[1] Payments.Create: %v", err)

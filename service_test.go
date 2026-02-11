@@ -698,7 +698,7 @@ func TestPaymentService_Create(t *testing.T) {
 		Amount:        9.99,
 		Currency:      "USD",
 		Platform:      PaymentPlatformIOS,
-		PurchasedAt:   "2024-01-15T10:00:00Z",
+		PurchasedAt:   time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
 	})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
@@ -1548,14 +1548,14 @@ func TestPaymentService_Create_AllValidations(t *testing.T) {
 		params CreatePaymentParams
 		field  string
 	}{
-		{"empty userId", CreatePaymentParams{TransactionID: "t", ProductID: "p", Amount: 1, Currency: "USD", Platform: "iOS", PurchasedAt: "2024-01-01"}, "userId"},
-		{"empty transactionId", CreatePaymentParams{UserID: "u", ProductID: "p", Amount: 1, Currency: "USD", Platform: "iOS", PurchasedAt: "2024-01-01"}, "transactionId"},
-		{"empty productId", CreatePaymentParams{UserID: "u", TransactionID: "t", Amount: 1, Currency: "USD", Platform: "iOS", PurchasedAt: "2024-01-01"}, "productId"},
-		{"zero amount", CreatePaymentParams{UserID: "u", TransactionID: "t", ProductID: "p", Amount: 0, Currency: "USD", Platform: "iOS", PurchasedAt: "2024-01-01"}, "amount"},
-		{"negative amount", CreatePaymentParams{UserID: "u", TransactionID: "t", ProductID: "p", Amount: -1, Currency: "USD", Platform: "iOS", PurchasedAt: "2024-01-01"}, "amount"},
-		{"empty currency", CreatePaymentParams{UserID: "u", TransactionID: "t", ProductID: "p", Amount: 1, Platform: "iOS", PurchasedAt: "2024-01-01"}, "currency"},
-		{"empty platform", CreatePaymentParams{UserID: "u", TransactionID: "t", ProductID: "p", Amount: 1, Currency: "USD", PurchasedAt: "2024-01-01"}, "platform"},
-		{"empty purchasedAt", CreatePaymentParams{UserID: "u", TransactionID: "t", ProductID: "p", Amount: 1, Currency: "USD", Platform: "iOS"}, "purchasedAt"},
+		{"empty userId", CreatePaymentParams{TransactionID: "t", ProductID: "p", Amount: 1, Currency: "USD", Platform: "iOS", PurchasedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)}, "userId"},
+		{"empty transactionId", CreatePaymentParams{UserID: "u", ProductID: "p", Amount: 1, Currency: "USD", Platform: "iOS", PurchasedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)}, "transactionId"},
+		{"empty productId", CreatePaymentParams{UserID: "u", TransactionID: "t", Amount: 1, Currency: "USD", Platform: "iOS", PurchasedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)}, "productId"},
+		{"zero amount", CreatePaymentParams{UserID: "u", TransactionID: "t", ProductID: "p", Amount: 0, Currency: "USD", Platform: "iOS", PurchasedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)}, "amount"},
+		{"negative amount", CreatePaymentParams{UserID: "u", TransactionID: "t", ProductID: "p", Amount: -1, Currency: "USD", Platform: "iOS", PurchasedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)}, "amount"},
+		{"empty currency", CreatePaymentParams{UserID: "u", TransactionID: "t", ProductID: "p", Amount: 1, Platform: "iOS", PurchasedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)}, "currency"},
+		{"empty platform", CreatePaymentParams{UserID: "u", TransactionID: "t", ProductID: "p", Amount: 1, Currency: "USD", PurchasedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)}, "platform"},
+		{"zero purchasedAt", CreatePaymentParams{UserID: "u", TransactionID: "t", ProductID: "p", Amount: 1, Currency: "USD", Platform: "iOS"}, "purchasedAt"},
 	}
 
 	for _, tt := range tests {
@@ -1870,7 +1870,7 @@ func TestHTTPError_400(t *testing.T) {
 
 	_, err := server.Payments.Create(context.Background(), CreatePaymentParams{
 		UserID: "u1", TransactionID: "t1", ProductID: "p1",
-		Amount: 9.99, Currency: "USD", Platform: "iOS", PurchasedAt: "now",
+		Amount: 9.99, Currency: "USD", Platform: "iOS", PurchasedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
 	})
 	if err == nil {
 		t.Fatal("expected error")
@@ -1935,7 +1935,7 @@ func TestHTTPError_422(t *testing.T) {
 
 	_, err := server.Payments.Create(context.Background(), CreatePaymentParams{
 		UserID: "u1", TransactionID: "t1", ProductID: "p1",
-		Amount: 9.99, Currency: "USD", Platform: "iOS", PurchasedAt: "2024-01-01",
+		Amount: 9.99, Currency: "USD", Platform: "iOS", PurchasedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 	})
 	if err == nil {
 		t.Fatal("expected error")
