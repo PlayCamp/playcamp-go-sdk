@@ -82,10 +82,12 @@ type CreatePaymentParams struct {
 	Receipt          *string           `json:"receipt,omitempty"`
 	CampaignID       *string           `json:"campaignId,omitempty"`
 	CreatorKey       *string           `json:"creatorKey,omitempty"`
+	CallbackID       string            `json:"callbackId,omitempty"`
 	IsTest           *bool             `json:"isTest,omitempty"`
 }
 
 // RefundPaymentOptions specifies options for refunding a payment.
 type RefundPaymentOptions struct {
-	IsTest *bool `json:"isTest,omitempty"`
+	CallbackID string `json:"callbackId,omitempty"`
+	IsTest     *bool  `json:"isTest,omitempty"`
 }

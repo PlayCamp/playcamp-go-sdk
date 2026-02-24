@@ -12,6 +12,7 @@ type Server struct {
 	Sponsors  *SponsorServerService
 	Payments  *PaymentService
 	Webhooks  *WebhookService
+	Webview   *WebviewServerService
 }
 
 // NewServer creates a new PlayCamp Server for read/write operations.
@@ -40,5 +41,6 @@ func NewServer(apiKey string, opts ...Option) (*Server, error) {
 		Sponsors:  newSponsorServerService(hc),
 		Payments:  newPaymentService(hc),
 		Webhooks:  newWebhookService(hc),
+		Webview:   newWebviewServerService(hc),
 	}, nil
 }

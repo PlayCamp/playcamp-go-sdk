@@ -25,6 +25,7 @@ type CouponValidation struct {
 	Valid        bool             `json:"valid"`
 	CouponCode   string          `json:"couponCode"`
 	ItemName     LocalizedString  `json:"itemName"`
+	ItemImageURL *string          `json:"itemImageUrl,omitempty"`
 	CreatorKey   string          `json:"creatorKey"`
 	CampaignID   string          `json:"campaignId"`
 	ErrorCode    *CouponErrorCode `json:"errorCode,omitempty"`
@@ -48,6 +49,7 @@ type RewardItem struct {
 	ItemName     LocalizedString `json:"itemName"`
 	ItemID       string          `json:"itemId"`
 	ItemQuantity int             `json:"itemQuantity"`
+	ItemImageURL *string         `json:"itemImageUrl,omitempty"`
 }
 
 // RedeemResult represents the result of coupon redemption.
@@ -69,6 +71,7 @@ type RedeemCouponParams struct {
 	CouponCode   string  `json:"couponCode"`
 	UserID       string  `json:"userId"`
 	GameUserUUID *string `json:"gameUserUuid,omitempty"`
+	CallbackID   string  `json:"callbackId,omitempty"`
 	IsTest       *bool   `json:"isTest,omitempty"`
 }
 
