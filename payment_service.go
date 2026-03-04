@@ -78,6 +78,18 @@ func (s *PaymentService) ListAllByUser(userID string, opts *PaginationOptions) *
 	})
 }
 
+// CreateBulk registers payments in bulk (up to 1000).
+func (s *PaymentService) CreateBulk(ctx context.Context, params CreateBulkPaymentParams) (*BulkPaymentResult, error) {
+	if len(params.Payments) == 0 {
+		return nil, &InputValidationError{Field: "payments", Message: "must contain at least one payment"}
+	}
+	var result BulkPaymentResult
+	if err := s.client.Post(ctx, s.basePath+"/bulk", params, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
 // Refund refunds a payment.
 func (s *PaymentService) Refund(ctx context.Context, transactionID string, opts *RefundPaymentOptions) (*Payment, error) {
 	if err := requireNonEmpty("transactionId", transactionID); err != nil {

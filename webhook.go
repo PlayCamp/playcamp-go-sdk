@@ -16,6 +16,8 @@ const (
 	WebhookEventSponsorCreated WebhookEventType = "sponsor.created"
 	// WebhookEventSponsorChanged is fired when a sponsor relationship is changed.
 	WebhookEventSponsorChanged WebhookEventType = "sponsor.changed"
+	// WebhookEventPaymentBulkCreated is fired when payments are created in bulk.
+	WebhookEventPaymentBulkCreated WebhookEventType = "payment.bulk_created"
 	// WebhookEventSponsorEnded is fired when a sponsor relationship is ended.
 	WebhookEventSponsorEnded WebhookEventType = "sponsor.ended"
 )
@@ -146,6 +148,15 @@ type SponsorChangedData struct {
 	CampaignID    string `json:"campaignId"`
 	OldCreatorKey string `json:"oldCreatorKey"`
 	NewCreatorKey string `json:"newCreatorKey"`
+}
+
+// PaymentBulkCreatedData is the data payload for a payment.bulk_created event.
+type PaymentBulkCreatedData struct {
+	TotalRequested int      `json:"totalRequested"`
+	Successful     int      `json:"successful"`
+	Failed         int      `json:"failed"`
+	Skipped        int      `json:"skipped"`
+	TransactionIDs []string `json:"transactionIds"`
 }
 
 // SponsorEndedData is the data payload for a sponsor.ended event.
