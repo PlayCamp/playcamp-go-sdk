@@ -66,9 +66,16 @@ func (s *SponsorServerService) Delete(ctx context.Context, userID string, opts *
 		return err
 	}
 	var query url.Values
-	if opts != nil && opts.CampaignID != nil {
-		query = url.Values{}
-		query.Set("campaignId", *opts.CampaignID)
+	if opts != nil {
+		if opts.CampaignID != nil || opts.CallbackID != "" {
+			query = url.Values{}
+		}
+		if opts.CampaignID != nil {
+			query.Set("campaignId", *opts.CampaignID)
+		}
+		if opts.CallbackID != "" {
+			query.Set("callbackId", opts.CallbackID)
+		}
 	}
 	return s.client.Delete(ctx, s.basePath+"/user/"+url.PathEscape(userID), query)
 }

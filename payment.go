@@ -82,10 +82,36 @@ type CreatePaymentParams struct {
 	Receipt          *string           `json:"receipt,omitempty"`
 	CampaignID       *string           `json:"campaignId,omitempty"`
 	CreatorKey       *string           `json:"creatorKey,omitempty"`
+	CallbackID       string            `json:"callbackId,omitempty"`
 	IsTest           *bool             `json:"isTest,omitempty"`
+}
+
+// CreateBulkPaymentParams specifies parameters for creating payments in bulk.
+type CreateBulkPaymentParams struct {
+	Payments   []CreatePaymentParams `json:"payments"`
+	CallbackID string                `json:"callbackId,omitempty"`
+	IsTest     *bool                 `json:"isTest,omitempty"`
+}
+
+// BulkPaymentResultItem represents the result of a single payment within a bulk operation.
+type BulkPaymentResultItem struct {
+	TransactionID string   `json:"transactionId"`
+	Status        string   `json:"status"` // "SUCCESS", "SKIPPED", or "FAILED"
+	Data          *Payment `json:"data,omitempty"`
+	Error         *string  `json:"error,omitempty"`
+}
+
+// BulkPaymentResult represents the response from a bulk payment creation.
+type BulkPaymentResult struct {
+	TotalRequested int                     `json:"totalRequested"`
+	Successful     int                     `json:"successful"`
+	Failed         int                     `json:"failed"`
+	Skipped        int                     `json:"skipped"`
+	Results        []BulkPaymentResultItem `json:"results"`
 }
 
 // RefundPaymentOptions specifies options for refunding a payment.
 type RefundPaymentOptions struct {
-	IsTest *bool `json:"isTest,omitempty"`
+	CallbackID string `json:"callbackId,omitempty"`
+	IsTest     *bool  `json:"isTest,omitempty"`
 }

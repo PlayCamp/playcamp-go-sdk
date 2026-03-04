@@ -16,6 +16,10 @@ const (
 	WebhookEventSponsorCreated WebhookEventType = "sponsor.created"
 	// WebhookEventSponsorChanged is fired when a sponsor relationship is changed.
 	WebhookEventSponsorChanged WebhookEventType = "sponsor.changed"
+	// WebhookEventPaymentBulkCreated is fired when payments are created in bulk.
+	WebhookEventPaymentBulkCreated WebhookEventType = "payment.bulk_created"
+	// WebhookEventSponsorEnded is fired when a sponsor relationship is ended.
+	WebhookEventSponsorEnded WebhookEventType = "sponsor.ended"
 )
 
 // WebhookStatus represents the delivery status of a webhook.
@@ -100,10 +104,11 @@ type WebhookPayload struct {
 
 // WebhookEvent represents a single event in a webhook payload.
 type WebhookEvent struct {
-	Event     WebhookEventType `json:"event"`
-	Timestamp string           `json:"timestamp"`
-	IsTest    *bool            `json:"isTest,omitempty"`
-	Data      json.RawMessage  `json:"data"`
+	Event      WebhookEventType `json:"event"`
+	Timestamp  string           `json:"timestamp"`
+	CallbackID string           `json:"callbackId,omitempty"`
+	IsTest     *bool            `json:"isTest,omitempty"`
+	Data       json.RawMessage  `json:"data"`
 }
 
 // CouponRedeemedData is the data payload for a coupon.redeemed event.
@@ -143,4 +148,20 @@ type SponsorChangedData struct {
 	CampaignID    string `json:"campaignId"`
 	OldCreatorKey string `json:"oldCreatorKey"`
 	NewCreatorKey string `json:"newCreatorKey"`
+}
+
+// PaymentBulkCreatedData is the data payload for a payment.bulk_created event.
+type PaymentBulkCreatedData struct {
+	TotalRequested int      `json:"totalRequested"`
+	Successful     int      `json:"successful"`
+	Failed         int      `json:"failed"`
+	Skipped        int      `json:"skipped"`
+	TransactionIDs []string `json:"transactionIds"`
+}
+
+// SponsorEndedData is the data payload for a sponsor.ended event.
+type SponsorEndedData struct {
+	UserID     string `json:"userId"`
+	CampaignID string `json:"campaignId"`
+	CreatorKey string `json:"creatorKey"`
 }

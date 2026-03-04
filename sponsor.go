@@ -44,6 +44,7 @@ type CreateSponsorParams struct {
 	UserID     string  `json:"userId"`
 	CreatorKey string  `json:"creatorKey"`
 	CampaignID *string `json:"campaignId,omitempty"`
+	CallbackID string  `json:"callbackId,omitempty"`
 	IsTest     *bool   `json:"isTest,omitempty"`
 }
 
@@ -51,12 +52,14 @@ type CreateSponsorParams struct {
 type UpdateSponsorParams struct {
 	CampaignID    *string `json:"campaignId,omitempty"`
 	NewCreatorKey string  `json:"newCreatorKey"`
+	CallbackID    string  `json:"callbackId,omitempty"`
 	IsTest        *bool   `json:"isTest,omitempty"`
 }
 
 // DeleteSponsorOptions specifies options for deleting a sponsor (Server API).
 type DeleteSponsorOptions struct {
 	CampaignID *string
+	CallbackID string
 }
 
 // GetSponsorHistoryOptions specifies options for getting sponsor history (Server API).
