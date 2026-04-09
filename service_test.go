@@ -667,6 +667,47 @@ func TestSponsorServerService_ListAllHistory(t *testing.T) {
 
 // --- Server: Payment Tests ---
 
+func TestPaymentService_Create_NormalizesToUTC(t *testing.T) {
+	kst, err := time.LoadLocation("Asia/Seoul")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 2024-01-15 19:00:00 KST = 2024-01-15 10:00:00 UTC
+	kstTime := time.Date(2024, 1, 15, 19, 0, 0, 0, kst)
+
+	server, ts := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
+		var body map[string]any
+		json.NewDecoder(r.Body).Decode(&body)
+		got := body["purchasedAt"].(string)
+		want := "2024-01-15T10:00:00Z"
+		if got != want {
+			t.Errorf("purchasedAt = %q, want %q (should be UTC)", got, want)
+		}
+		writeJSON(w, map[string]any{
+			"data": map[string]any{
+				"id": 1, "transactionId": "txn_utc", "userId": "user1",
+				"productId": "prod1", "amount": 9.99, "currency": "USD",
+				"platform": "iOS", "status": "COMPLETED",
+				"purchasedAt": "2024-01-15T10:00:00Z", "createdAt": "2024-01-15T10:00:00Z",
+			},
+		})
+	})
+	defer ts.Close()
+
+	_, err = server.Payments.Create(context.Background(), CreatePaymentParams{
+		UserID:        "user1",
+		TransactionID: "txn_utc",
+		ProductID:     "prod1",
+		Amount:        9.99,
+		Currency:      "USD",
+		Platform:      PaymentPlatformIOS,
+		PurchasedAt:   kstTime,
+	})
+	if err != nil {
+		t.Fatalf("Create with KST time: %v", err)
+	}
+}
+
 func TestPaymentService_Create(t *testing.T) {
 	server, ts := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
