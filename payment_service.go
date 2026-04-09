@@ -40,6 +40,7 @@ func (s *PaymentService) Create(ctx context.Context, params CreatePaymentParams)
 	if params.PurchasedAt.IsZero() {
 		return nil, &InputValidationError{Field: "purchasedAt", Message: "must be a non-zero time.Time"}
 	}
+	params.PurchasedAt = params.PurchasedAt.UTC()
 	var result Payment
 	if err := s.client.Post(ctx, s.basePath, params, &result); err != nil {
 		return nil, err
@@ -82,6 +83,9 @@ func (s *PaymentService) ListAllByUser(userID string, opts *PaginationOptions) *
 func (s *PaymentService) CreateBulk(ctx context.Context, params CreateBulkPaymentParams) (*BulkPaymentResult, error) {
 	if len(params.Payments) == 0 {
 		return nil, &InputValidationError{Field: "payments", Message: "must contain at least one payment"}
+	}
+	for i := range params.Payments {
+		params.Payments[i].PurchasedAt = params.Payments[i].PurchasedAt.UTC()
 	}
 	var result BulkPaymentResult
 	if err := s.client.Post(ctx, s.basePath+"/bulk", params, &result); err != nil {
