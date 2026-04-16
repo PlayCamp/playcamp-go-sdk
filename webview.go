@@ -7,6 +7,7 @@ type WebviewOttParams struct {
 	CodeChallenge string                 `json:"codeChallenge,omitempty"`
 	CallbackID    string                 `json:"callbackId,omitempty"`
 	Metadata      map[string]any `json:"metadata,omitempty"`
+	IsTest        bool                   `json:"isTest,omitempty"`
 }
 
 // WebviewOttResult contains the response from OTT creation.
