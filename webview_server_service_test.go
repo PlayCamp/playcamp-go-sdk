@@ -48,6 +48,39 @@ func TestWebviewServerService_CreateOTT(t *testing.T) {
 	}
 }
 
+func TestWebviewServerService_CreateOTT_WithIsTest(t *testing.T) {
+	server, ts := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
+		var body map[string]any
+		json.NewDecoder(r.Body).Decode(&body)
+		if body["userId"] != "user1" {
+			t.Errorf("userId = %v, want user1", body["userId"])
+		}
+		if body["isTest"] != true {
+			t.Errorf("isTest = %v, want true", body["isTest"])
+		}
+
+		writeJSON(w, map[string]any{
+			"data": map[string]any{
+				"ott":       "ott_test_123",
+				"expiresAt": "2024-12-31T23:59:59Z",
+			},
+		})
+	})
+	defer ts.Close()
+
+	result, err := server.Webview.CreateOTT(context.Background(), WebviewOttParams{
+		UserID:     "user1",
+		CampaignID: "campaign1",
+		IsTest:     true,
+	})
+	if err != nil {
+		t.Fatalf("CreateOTT with IsTest: %v", err)
+	}
+	if result.OTT != "ott_test_123" {
+		t.Errorf("OTT = %q, want %q", result.OTT, "ott_test_123")
+	}
+}
+
 func TestWebviewServerService_CreateOTT_EmptyUserID(t *testing.T) {
 	server, ts := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		t.Error("request should not have been made")
