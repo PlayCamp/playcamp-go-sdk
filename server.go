@@ -6,13 +6,14 @@ import (
 
 // Server provides full read/write access to the PlayCamp API using a SERVER API key.
 type Server struct {
-	Campaigns *CampaignServerService
-	Creators  *CreatorServerService
-	Coupons   *CouponServerService
-	Sponsors  *SponsorServerService
-	Payments  *PaymentService
-	Webhooks  *WebhookService
-	Webview   *WebviewServerService
+	Campaigns        *CampaignServerService
+	Creators         *CreatorServerService
+	Coupons          *CouponServerService
+	Sponsors         *SponsorServerService
+	Payments         *PaymentService
+	PlaytimeSessions *PlaytimeSessionService
+	Webhooks         *WebhookService
+	Webview          *WebviewServerService
 }
 
 // NewServer creates a new PlayCamp Server for read/write operations.
@@ -35,12 +36,13 @@ func NewServer(apiKey string, opts ...Option) (*Server, error) {
 	hc := httpclient.New(httpCfg)
 
 	return &Server{
-		Campaigns: newCampaignServerService(hc),
-		Creators:  newCreatorServerService(hc),
-		Coupons:   newCouponServerService(hc),
-		Sponsors:  newSponsorServerService(hc),
-		Payments:  newPaymentService(hc),
-		Webhooks:  newWebhookService(hc),
-		Webview:   newWebviewServerService(hc),
+		Campaigns:        newCampaignServerService(hc),
+		Creators:         newCreatorServerService(hc),
+		Coupons:          newCouponServerService(hc),
+		Sponsors:         newSponsorServerService(hc),
+		Payments:         newPaymentService(hc),
+		PlaytimeSessions: newPlaytimeSessionService(hc),
+		Webhooks:         newWebhookService(hc),
+		Webview:          newWebviewServerService(hc),
 	}, nil
 }
