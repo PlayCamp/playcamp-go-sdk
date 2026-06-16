@@ -77,6 +77,47 @@ func ExampleNewServer_payment() {
 	_ = payment
 }
 
+func ExampleNewServer_playtime() {
+	server, err := playcamp.NewServer("serverKeyId:secret",
+		playcamp.WithEnvironment(playcamp.EnvironmentLive),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx := context.Background()
+
+	// Report a single game session's playtime
+	session, err := server.PlaytimeSessions.Create(ctx, playcamp.CreatePlaytimeSessionParams{
+		SessionID:       "sess_1",
+		UserID:          "user_42",
+		DurationSeconds: 1830,
+		StartedAt:       time.Date(2026, 6, 15, 7, 33, 37, 0, time.UTC),
+		EndedAt:         time.Date(2026, 6, 15, 8, 4, 7, 0, time.UTC),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = session
+
+	// Report multiple sessions in bulk (up to 1000)
+	bulk, err := server.PlaytimeSessions.CreateBulk(ctx, playcamp.CreateBulkPlaytimeSessionParams{
+		Sessions: []playcamp.CreatePlaytimeSessionParams{
+			{
+				SessionID:       "sess_2",
+				UserID:          "user_42",
+				DurationSeconds: 600,
+				StartedAt:       time.Date(2026, 6, 15, 9, 0, 0, 0, time.UTC),
+				EndedAt:         time.Date(2026, 6, 15, 9, 10, 0, 0, time.UTC),
+			},
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = bulk
+}
+
 func ExampleNewServer_sponsor() {
 	server, err := playcamp.NewServer("serverKeyId:secret",
 		playcamp.WithEnvironment(playcamp.EnvironmentLive),
