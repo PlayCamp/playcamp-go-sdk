@@ -14,14 +14,20 @@ type PlaytimeSession struct {
 
 // CreatePlaytimeSessionParams specifies parameters for reporting a session.
 type CreatePlaytimeSessionParams struct {
-	SessionID       string                 `json:"sessionId"`
-	UserID          string                 `json:"userId"`
-	DurationSeconds int                    `json:"durationSeconds"`
-	StartedAt       time.Time              `json:"startedAt"`
-	EndedAt         time.Time              `json:"endedAt"`
-	Metadata        map[string]interface{} `json:"metadata,omitempty"`
-	CallbackID      string                 `json:"callbackId,omitempty"`
-	IsTest          *bool                  `json:"isTest,omitempty"`
+	SessionID       string    `json:"sessionId"`
+	UserID          string    `json:"userId"`
+	DurationSeconds int       `json:"durationSeconds"`
+	StartedAt       time.Time `json:"startedAt"`
+	EndedAt         time.Time `json:"endedAt"`
+	// CampaignID is optional; if omitted the server matches the sponsorship.
+	CampaignID string `json:"campaignId,omitempty"`
+	// CreatorKey is optional (exactly 5 uppercase chars); if omitted the server matches the creator.
+	CreatorKey string `json:"creatorKey,omitempty"`
+	// Platform is optional; the server defaults to PaymentPlatformOther if omitted.
+	Platform   PaymentPlatform        `json:"platform,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
+	CallbackID string                 `json:"callbackId,omitempty"`
+	IsTest     *bool                  `json:"isTest,omitempty"`
 }
 
 // CreateBulkPlaytimeSessionParams specifies parameters for bulk reporting.
