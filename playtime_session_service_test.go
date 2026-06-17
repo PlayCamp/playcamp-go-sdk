@@ -58,6 +58,76 @@ func TestPlaytimeSessionService_Create(t *testing.T) {
 	}
 }
 
+func TestPlaytimeSessionService_Create_AttributionFields(t *testing.T) {
+	server, ts := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
+		var body map[string]any
+		json.NewDecoder(r.Body).Decode(&body)
+		if body["campaignId"] != "camp_1" {
+			t.Errorf("campaignId = %v, want camp_1", body["campaignId"])
+		}
+		if body["creatorKey"] != "ABCDE" {
+			t.Errorf("creatorKey = %v, want ABCDE", body["creatorKey"])
+		}
+		if body["platform"] != "iOS" {
+			t.Errorf("platform = %v, want iOS", body["platform"])
+		}
+		writeJSON(w, map[string]any{
+			"data": map[string]any{
+				"sessionId":       "sess_1",
+				"userId":          "user_42",
+				"durationSeconds": 1830,
+				"recorded":        true,
+				"createdAt":       "2026-06-15T08:04:07.000Z",
+			},
+		})
+	})
+	defer ts.Close()
+
+	_, err := server.PlaytimeSessions.Create(context.Background(), CreatePlaytimeSessionParams{
+		SessionID:       "sess_1",
+		UserID:          "user_42",
+		DurationSeconds: 1830,
+		StartedAt:       time.Date(2026, 6, 15, 7, 33, 37, 0, time.UTC),
+		EndedAt:         time.Date(2026, 6, 15, 8, 4, 7, 0, time.UTC),
+		CampaignID:      "camp_1",
+		CreatorKey:      "ABCDE",
+		Platform:        PaymentPlatformIOS,
+	})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+}
+
+func TestPlaytimeSessionService_Create_OmitsAttributionWhenEmpty(t *testing.T) {
+	server, ts := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
+		var body map[string]any
+		json.NewDecoder(r.Body).Decode(&body)
+		for _, k := range []string{"campaignId", "creatorKey", "platform"} {
+			if _, ok := body[k]; ok {
+				t.Errorf("expected %q to be omitted, but it was present: %v", k, body[k])
+			}
+		}
+		writeJSON(w, map[string]any{
+			"data": map[string]any{
+				"sessionId": "sess_1", "userId": "user_42", "durationSeconds": 1830,
+				"recorded": true, "createdAt": "2026-06-15T08:04:07.000Z",
+			},
+		})
+	})
+	defer ts.Close()
+
+	_, err := server.PlaytimeSessions.Create(context.Background(), CreatePlaytimeSessionParams{
+		SessionID:       "sess_1",
+		UserID:          "user_42",
+		DurationSeconds: 1830,
+		StartedAt:       time.Date(2026, 6, 15, 7, 33, 37, 0, time.UTC),
+		EndedAt:         time.Date(2026, 6, 15, 8, 4, 7, 0, time.UTC),
+	})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+}
+
 func TestPlaytimeSessionService_Create_Validation(t *testing.T) {
 	server, ts := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		t.Error("request should not have been made")

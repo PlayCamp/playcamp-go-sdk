@@ -87,13 +87,16 @@ func ExampleNewServer_playtime() {
 
 	ctx := context.Background()
 
-	// Report a single game session's playtime
+	// Report a single game session's playtime.
+	// campaignId/creatorKey/platform are optional attribution overrides;
+	// if omitted the server matches the sponsorship and defaults platform to Other.
 	session, err := server.PlaytimeSessions.Create(ctx, playcamp.CreatePlaytimeSessionParams{
 		SessionID:       "sess_1",
 		UserID:          "user_42",
 		DurationSeconds: 1830,
 		StartedAt:       time.Date(2026, 6, 15, 7, 33, 37, 0, time.UTC),
 		EndedAt:         time.Date(2026, 6, 15, 8, 4, 7, 0, time.UTC),
+		Platform:        playcamp.PaymentPlatformIOS,
 	})
 	if err != nil {
 		log.Fatal(err)
